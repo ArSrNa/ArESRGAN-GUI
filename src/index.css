@@ -1,0 +1,16 @@
+.arimg{
+  max-height: 20vh;
+  max-height: 50vh;
+  width: auto;
+}
+#befLink,#aftLink {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.line-limit-length {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  }
