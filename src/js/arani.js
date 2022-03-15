@@ -19,8 +19,7 @@ function process() {
   arProgressing('arLoading','处理中','fa-info-circle')
     inputFile = document.getElementById('inputFile');
     if(inputFile.files.length>=1){
-
-  sumTime=0
+        sumTime=0
   taskTimer=setInterval((e)=>{
     sumTime+=0.1
     $('#timer').html(`计时 ${sumTime.toFixed(3)}s`)
