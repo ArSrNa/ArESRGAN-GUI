@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <button id="ws-create" onclick="">Create</button>
+        <button id="ws-send" >Send</button>
+        <button id="ws-close" >Close</button>
+        <button id="ws-show" >Show</button>
+    </div>
+
+    <script>
+        var ws=new WebSocket(`ws://localhost:3000/generate`)
+ws.onmessage = function (data) {
+  console.log(data.data); // 接收信息
+};
+    </script>
+    <style>
+        body {
+    margin: 0;
+}
+
+#app {
+    display: grid;
+    place-items: center;
+    height: 500px;
+}
+    </style>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>RealESRGAN | Ar-Sr-Na</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.arsrna.cn/js/json2html.min.js"></script>
+<script src="https://www.arsrna.cn/js/delighters.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+<link href="https://www.arsrna.cn/css/armain.css" rel="stylesheet">
+<link href="index.css" rel="stylesheet">
+<script src="https://www.arsrna.cn/js/arloading.js"></script>
+<script src="./js/arani.js"></script>
+
+  </head>
+  <body style="padding-top: 70px;min-height: 60vh;">  
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">资源与应用 | Ar-Sr-Na ESRGAN 本地静态图像版</a>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="input-group">
+            <input type="file" class="form-control" id="inputFile" oninput="change()">
+          </div>
+
+          <div class="input-group">
+            <label class="input-group-text" for="model">选择模型</label>
+            <select class="form-select" id="model">
+              <!-- <option selected>请选择</option> -->
+              <option value="realesrnet-x4plus">realesrnet-x4plus（针对一般图片）</option>
+              <option value="realesrgan-x4plus-anime" selected>realesrgan-x4plus-anime（针对动画图片）</option>
+            </select>
+          </div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-success" onclick="process()">处理</button>
+          </div>
+        
+        <div class="arLoading"></div>
+          <hr>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress">0%</div>
+          </div>
+          <p id="timer"></p>
+          
+        </div>
+<div class="col-lg-8 row">
+  <div class="col-6">
+    <img id="origin" class="img-fluid arimg" src="input.jpg" alt="待上传">
+    <br>
+    <p class="line-limit-length"><a id="befLink" href="input.jpg" target="_blank">处理前</a></p>
+</div>
+
+<div class="col-6">
+  <img id="process" class="img-fluid arimg" src="input.jpg_optimization.png" alt="待处理">
+  <br>
+  <p class="line-limit-length"><a id="aftLink" href="input.jpg_optimization.png" target="_blank">处理后</a></p>
+</div>
+  
+</div>
+
+      </div>
+      <hr>
+      <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#copyright">
+  开源版权声明
+</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#byAuthor">
+  作者寄语
+</button>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLog">
+  更新日志
+</button>
+<!-- Modal -->
+<div class="modal fade" id="copyright" tabindex="-1" aria-labelledby="copyright" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="copyright">开源版权声明</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>本软件源模型来自Real-ESRGAN：https://github.com/xinntao/Real-ESRGAN，并遵循 BSD 3-Clause License 公共许可协议
+          <br>本软件UI来自Bootstrap：https://github.com/twbs/bootstrap，并遵守MIT协议
+          <br>框架来自electron及其附属代码：https://github.com/electron/electron，并遵循MIT许可协议
+          <br>前后端传输来自Socket.io与express，并遵守其原开源许可协议
+          <br>本软件作者：Ar-Sr-Na（https://www.arsrna.cn）拥有修改与二次创作该作品的权利，并受法律保护
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="byAuthor" tabindex="-1" aria-labelledby="byAuthor" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="byAuthor">作者寄语</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="lead">在此感谢所有对本应用与本团队的支持，
+          同时，应用正常运行与维护离不开他们的支持，离不开他们的维护，
+          在这里郑重感谢下列来自腾讯的工程师以及来自各行各业的开发者，他们解答了我们的疑难，半夜还在敬业地为我们查找问题：</div>
+          <p>
+          <br />腾讯云高级工程师：王冬生
+          <br />腾讯云TDP：一个温柔的小哥哥、鸡毛换糖、Ar-Sr-Na；
+          <br />腾讯云研发团队：上官青儿、庄园、不期而遇、wayen、wuyanjun、风之泪、Ha🦛；
+          <br />腾讯云架构与服务：*海名
+          <br />腾讯云CVM团队、腾讯云Batch团队、腾讯云Serverless团队、腾讯云CIAM团队</p>     
+        <p>这个应用，是一项巨大的挑战，我们从未在Windows平台上写过APP，
+         <br>当看到控制台里输出了文字："D:/YuukiAsuna_optimization.png；connection closed"时，意味着这个项目最关键的地方已经告一段落，我们成功了！
+         <br>这种心情，估计只有开发者懂得，当进度条跑到100%的时候，我们永远不知道接下来会发生什么，弹窗报错？还是预期内容？在经历了上千次疯狂弹窗之后，我们得到了绿色的log
+         <br>这是我目前人生中对接最多API的应用程序，涉及到了Powershell,ajax,express,websocket,cosfs......
+         <strong>祝大家使用愉快！</strong>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="updateLog" tabindex="-1" aria-labelledby="updateLog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="updateLog">更新日志</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+            2022-2-10 应用开始筹划
+         <br>2022-2-14 2:12 成功上线第一个Release 1.0
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>   
+
+      <hr>
+</body>
+<script src="https://www.arsrna.cn/footer.js"></script>
+</html>
