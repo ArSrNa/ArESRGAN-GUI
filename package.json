@@ -3,14 +3,14 @@
   "productName": "aresrgan",
   "version": "1.0.2",
   "description": "My Electron application description",
-  "main": "index.js",
+  "main": "./back/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build": "electron-packager ./ ArSrNaESRGAN --win --arch=x64 --out ./outputs --electron-zip-dir=./ --icon=icon.ico --overwrite --extra-resource=./resources/realsgan/"
+    "build": "electron-packager ./ ArSrNaESRGAN --win --arch=x64 --out ./outputs --electron-zip-dir=./ --icon=./icon.ico --overwrite --extra-resource=./resources/realsgan/"
   },
   "keywords": [],
   "author": "结城明日奈",
