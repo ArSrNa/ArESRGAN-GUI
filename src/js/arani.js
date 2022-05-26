@@ -1,29 +1,41 @@
 var ws=new WebSocket(`ws://localhost:3000/generate`)
+
 ws.onmessage = function (data) {
   console.log(data.data); // 接收信息
   $('h5').html(`处理中：${data.data}`)
   $('#progress').css('width',data.data)
   $('#progress').html(data.data)
+
   if(data.data=='exit0'){
-    //ws.close()
+    $('#processStop').addClass('disabled')
+    $('#processStart').removeClass('disabled')
+    $('#processStart').html(`处理`)
+    //进程退出操作
+    //正常退出
     $('#process').attr('src',`${inputFile.files[0].path}_optimization.png`)
-    arProgressing('arLoading',`处理完成，耗时${sumTime.toFixed(3)}s`,'fa-check-circle')
+    arProgressing('arLoading','处理完成','fa-check-circle')
     $('#progress').css('width','100%')
     $('#progress').html(`处理完成`)
     $('.ar-line').hide()
-    clearInterval(taskTimer)
+     }
+
+  if(JSON.parse(data.data).force){
+      arProgressing('arLoading','人为退出','fa-exclamation-triangle')
+      $('.ar-line').hide()
+      $('#processStop').addClass('disabled')
+    $('#processStart').removeClass('disabled')
+    $('#processStart').html(`处理`)
   }
 };
 
 function process() {
   arProgressing('arLoading','处理中','fa-info-circle')
+  $('#processStop').removeClass('disabled')
+  $('#processStart').addClass('disabled')
+  $('#processStart').html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>处理中`)
+
     inputFile = document.getElementById('inputFile');
     if(inputFile.files.length>=1){
-        sumTime=0
-  taskTimer=setInterval((e)=>{
-    sumTime+=0.1
-    $('#timer').html(`计时 ${sumTime.toFixed(3)}s`)
-  },100)
 
     var model = $('#model').val();
     ws.send(JSON.stringify({
@@ -35,6 +47,10 @@ function process() {
   }else{
     $('h5').html('请上传文件')
   }
+}
+
+function paused(){
+  ws.send(JSON.stringify({kill:true}))
 }
 
 
@@ -87,4 +103,38 @@ function process() {
         Class: Class,
         size: '3',
         icon: icons})
+}
+
+
+
+function checkUpdate(){
+  var count=3;
+  $.ajax({
+    url:"https://api.arsrna.cn/release/appUpdate/ArESRGAN",
+    dataType:'json',
+    success(msg){
+      console.log(msg)
+      $('#updateHistory').html(msg.history)
+      if(msg.count>count){
+        $('.checkUpdate').show()
+       layer.open({
+         title:`发现新版本 ${msg.rName} ${msg.vNumber}`,
+         content: `更新日期：${msg.uTime} <br>${msg.content}`,
+         btn:['前往下载','取消'],
+         yes: function(index, layero){
+           location.href=msg.link;
+         }
+       });         
+      }else{
+       $('.checkUpdate').hide()
+         layer.msg('未发现新版本');
+      }
+    },
+
+    error(msg){
+     layer.msg(`检查失败 ${msg}`);
+     console.log(msg.statusText);
+    }
+  })
+
 }

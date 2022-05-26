@@ -3,25 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <title>RealESRGAN | Ar-Sr-Na</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.arsrna.cn/js/json2html.min.js"></script>
-<script src="https://www.arsrna.cn/js/delighters.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
-<link href="https://www.arsrna.cn/css/armain.css" rel="stylesheet">
+<script src="res/jquery.min.js"></script>
+<link rel="stylesheet" href="res/bootstrap.min.css">
+    <script src="res/bootstrap.bundle.min.js"></script>
+    <script src="res/json2html.min.js"></script>
+<link rel="stylesheet" href="res/font-awesome-4.7.0/css/font-awesome.min.css">
+<link href="res/armain.css" rel="stylesheet">
 <link href="index.css" rel="stylesheet">
-<script src="https://www.arsrna.cn/js/arloading.js"></script>
 <script src="./js/arani.js"></script>
+<script src="res/layer/layer.js"></script>
+<script src="./js/arloading.js"></script>
+
 
   </head>
   <body style="padding-top: 70px;min-height: 60vh;">  
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top nav-blur" style="height: 60px;">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">资源与应用 | Ar-Sr-Na ESRGAN 本地静态图像版</a>
+        <a class="navbar-brand" href="#">资源与应用</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Ar-Sr-Na ESRGAN 本地静态图像版</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="javascript:checkUpdate()">检查更新<span class="badge bg-danger checkUpdate">新版本</span></a>
+            </li>
+          </ul>
+        </div>
       </div>
     </nav>
+
     <div class="container">
       <div class="row">
         <div class="col-lg-4">
@@ -38,15 +52,24 @@
             </select>
           </div>
           <div class="d-grid gap-2">
-            <button class="btn btn-success" onclick="process()">处理</button>
+            <button class="btn btn-success" onclick="process()" id="processStart">处理</button>
+            </div>
+            <div class="alert alert-warning" role="alert">
+              请仔细检查所有配置以及文件内容
+            </div>
+        
+            <div class="d-grid gap-2">
+            <button class="btn btn-danger disabled" onclick="paused()" id="processStop">终止</button>
           </div>
+            <div class="alert alert-danger" role="alert">
+              按下后将会强行干掉子进程，请悉知
+            </div>
         
         <div class="arLoading"></div>
           <hr>
           <div class="progress">
             <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress">0%</div>
           </div>
-          <p id="timer"></p>
           
         </div>
 <div class="col-lg-8 row">
@@ -70,12 +93,21 @@
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#copyright">
   开源版权声明
 </button>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#byAuthor">
+<!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#byAuthor">
   作者寄语
-</button>
+</button> -->
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLog">
-  更新日志
+  更新历史
 </button>
+
+<button type="button" class="btn btn-primary position-relative" onclick="checkUpdate()">
+  检查更新
+  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger checkUpdate">
+    新版本
+    <span class="visually-hidden">1+</span>
+  </span>
+</button>
+
 <!-- Modal -->
 <div class="modal fade" id="copyright" tabindex="-1" aria-labelledby="copyright" aria-hidden="true">
   <div class="modal-dialog">
@@ -99,7 +131,7 @@
   </div>
 </div>
 
-<div class="modal fade" id="byAuthor" tabindex="-1" aria-labelledby="byAuthor" aria-hidden="true">
+<!-- <div class="modal fade" id="byAuthor" tabindex="-1" aria-labelledby="byAuthor" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -127,18 +159,17 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <div class="modal fade" id="updateLog" tabindex="-1" aria-labelledby="updateLog" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="updateLog">更新日志</h4>
+        <h4 class="modal-title" id="updateLog">更新历史</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-            2022-2-10 应用开始筹划
-         <br>2022-2-14 2:12 成功上线第一个Release 1.0
+      <div class="modal-body" id="updateHistory">
+            
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
@@ -149,5 +180,10 @@
 
       <hr>
 </body>
+<script>
+  $(document).ready(function(){
+    checkUpdate()
+  })
+</script>
 <script src="https://www.arsrna.cn/footer.js"></script>
 </html>
