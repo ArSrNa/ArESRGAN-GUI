@@ -3,7 +3,7 @@
   "productName": "aresrgan",
   "version": "1.0.2",
   "description": "My Electron application description",
-  "main": "./back/index.js",
+  "main": "back/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
