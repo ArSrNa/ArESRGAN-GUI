@@ -5,6 +5,8 @@ var express = require('express')
 var eapp = express()
 const expressWs = require('express-ws') 
 expressWs(eapp)
+const fs = require('fs');
+const res = require('express/lib/response');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -15,7 +17,7 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 1280,
     height: 600,
   });
 
@@ -55,16 +57,20 @@ eapp.ws('/generate',function(ws,req){
    // 使用 on 方法监听事件
   //   message 事件表示从另一段（服务端）传入的数据
   ws.on('message', function (msg) {
-    ws.send('default response')
+    //ws.send('default response')
     var data = JSON.parse(msg)
+    if(data.kill){
+      killProcess()
+    }else{
     console.log(data.file)
     optimization(ws,data)
+    }
   })
 
 function optimization(ws,data){
   var file = data.file;
   var model = data.model;
-  var esrgan = spawn(`${process.cwd()}\\resources\\realsgan\\realesrgan-ncnn-vulkan.exe`,[
+  esrgan = spawn(`${process.cwd()}\\resources\\realsgan\\realesrgan-ncnn-vulkan.exe`,[
     '-i',file,
     '-o',`${file}_optimization.png`,
     '-n',model
@@ -79,7 +85,10 @@ function optimization(ws,data){
     }); 
     esrgan.on('exit', function (code, signal) { 
     console.log('child process eixt ,exit:' + code); 
-    ws.send('exit' + code)
+    ws.send(JSON.stringify({
+      'force':true,
+      'exit':code
+    }))
     return code
     });
   }
@@ -90,9 +99,17 @@ function optimization(ws,data){
 
 })
 
+function killProcess() {
+  esrgan.kill('SIGINT');
+  console.log('killing');
+  //res.send('exitnull')
+}
+
 
 eapp.listen(3000)
 
+
+/*
 
 function aresrgan(file,model) {
 //var cmd = `${process.cwd()}\\src\\realsgan\\realesrgan-ncnn-vulkan.exe -i ${file} -o ${file}_optimization.png -n ${model}`;
@@ -111,6 +128,8 @@ esrgan.stderr.on('data', function (data) {
   return('child process eixt ,exit:' + code)
   });
 }
+
+*/
 
 /*
 <div class="display-4">作者寄语</div>
