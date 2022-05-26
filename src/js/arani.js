@@ -19,7 +19,7 @@ ws.onmessage = function (data) {
     $('.ar-line').hide()
      }
 
-  if(JSON.parse(data.data).force){
+  if(data.data=='exitnull'){
       arProgressing('arLoading','人为退出','fa-exclamation-triangle')
       $('.ar-line').hide()
       $('#processStop').addClass('disabled')

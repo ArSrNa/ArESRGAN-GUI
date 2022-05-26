@@ -5,8 +5,6 @@ var express = require('express')
 var eapp = express()
 const expressWs = require('express-ws') 
 expressWs(eapp)
-const fs = require('fs');
-const res = require('express/lib/response');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -22,7 +20,7 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, './src/index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
   mainWindow.removeMenu()
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
@@ -85,16 +83,17 @@ function optimization(ws,data){
     }); 
     esrgan.on('exit', function (code, signal) { 
     console.log('child process eixt ,exit:' + code); 
-    ws.send(JSON.stringify({
-      'force':true,
-      'exit':code
-    }))
+    ws.send('exit'+code)
     return code
     });
   }
 
     ws.on('close', function (e) {
       console.log('close connection')
+      ws.send(JSON.stringify({
+        'force':true,
+        'exit':code
+      }))
     })
 
 })
