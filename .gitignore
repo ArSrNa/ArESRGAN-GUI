@@ -88,4 +88,5 @@ typings/
 # Electron-Forge
 out/
 outputs/
-electron-v17.0.0-win32-x64.zip
+
+./electron-v17.0.0-win32-x64.zip
