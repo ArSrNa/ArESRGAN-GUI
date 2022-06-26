@@ -1,16 +1,16 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Powered by Ar-Sr-Na",
-  "main": "back/index.js",
+  "main": "./src/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build": "electron-packager ./ ArSrNaESRGAN --win --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite --extra-resource=./resources/realsgan/"
+    "build": "electron-packager ./ ArSrNaESRGAN --win --ignore test/ --ignore electron-v19.0.4-win32-x64.zip --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite"
   },
   "keywords": [],
   "author": "结城明日奈",
