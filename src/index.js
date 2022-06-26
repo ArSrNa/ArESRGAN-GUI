@@ -20,7 +20,7 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
+  mainWindow.loadFile(path.join(__dirname, './index.html'));
   mainWindow.removeMenu()
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
@@ -68,7 +68,7 @@ eapp.ws('/generate',function(ws,req){
 function optimization(ws,data){
   var file = data.file;
   var model = data.model;
-  esrgan = spawn(`${process.cwd()}\\resources\\realsgan\\realesrgan-ncnn-vulkan.exe`,[
+  esrgan = spawn(path.join(__dirname, `\\realsgan\\realesrgan-ncnn-vulkan.exe`),[
     '-i',file,
     '-o',`${file}_optimization.png`,
     '-n',model
