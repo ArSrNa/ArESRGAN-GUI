@@ -1,5 +1,5 @@
-const express = require('express')
-const expressWs = require('express-ws') // 引入 WebSocket 包
+const express = require('express');
+const expressWs = require('express-ws'); // 引入 WebSocket 包
 
 const app = express()
 expressWs(app) // 将 WebSocket 服务混入 app，相当于为 app 添加 .ws 方法
