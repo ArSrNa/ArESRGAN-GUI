@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "1.2",
+  "version": "1.5",
   "description": "Powered by Ar-Sr-Na",
   "main": "./src/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build": "electron-packager ./ ArSrNaESRGAN --win --ignore test/ --ignore electron-v19.0.4-win32-x64.zip --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite"
+    "build": "electron-packager ./ ArSrNaESRGAN --win --ignore test/ --ignore realsgan/ --ignore electron-v17.0.0-win32-x64.zip --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite --asar"
   },
   "keywords": [],
   "author": "结城明日奈",
@@ -56,6 +56,8 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.63",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "electron": "17.0.0"
+    "electron": "17.0.0",
+    "electron-packager": "^15.5.1",
+    "semver": "^7.3.7"
   }
 }
