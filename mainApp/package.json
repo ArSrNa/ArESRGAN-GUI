@@ -12,6 +12,45 @@
     "lint": "echo \"No linting configured\"",
     "build": "electron-packager ./ ArSrNaESRGAN --win --ignore test/ --ignore realsgan/ --ignore electron-v17.0.0-win32-x64.zip --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite --asar"
   },
+  "build": {
+    "productName": "ArSrNaUIESRGAN",
+    "appId": "arsrnauiesrgan",
+    "copyright": "ArSrNaRenderInfinity",
+    "asar": true,
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "icon": "./icon.ico",
+      "target": ["nsis","zip"]
+    },
+    "asarUnpack": [
+      
+    ],
+    "extraResources":[
+      {
+        "from":"backres/",
+        "to":"extraResources/"
+      }
+    ],
+    "files": [
+      "!electron-v19.0.4-win32-x64.zip"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "./icon.ico",
+      "uninstallerIcon": "./icon.ico",
+      "installerHeaderIcon": "./icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ArSrNaESRGAN视频版"
+    },
+    "electronDownload": {
+      "mirror": "https://npmmirror.com/mirrors/electron/"
+    }
+  },
   "keywords": [],
   "author": "结城明日奈",
   "license": "MIT",
@@ -43,6 +82,7 @@
     }
   },
   "dependencies": {
+    "ciam-node-sdk": "^1.1.1",
     "electron-squirrel-startup": "^1.0.0",
     "express": "^4.17.2",
     "express-ws": "^5.0.2",
