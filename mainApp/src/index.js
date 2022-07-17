@@ -3,7 +3,8 @@ const path = require('path');
 var spawn = require('child_process').spawn;
 var eapp = require('express')();
 const expressWs = require('express-ws');
-expressWs(eapp)
+expressWs(eapp);
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
