@@ -100,5 +100,20 @@ function killProcess() {
   //res.send('exitnull')
 }
 
+var exec = require('child_process').exec
+eapp.get('/openURL',(req,res)=>{
+	switch (process.platform) {
+		case "darwin":
+		  exec(`open ${req.query.url}`);
+		  break;
+		case "win32":
+			exec(`start ${req.query.url}`);
+		  break;
+		default:
+		  exec('xdg-open', [url]);
+	  }
+	res.send('success');
+  })
+
 
 eapp.listen(3000)
