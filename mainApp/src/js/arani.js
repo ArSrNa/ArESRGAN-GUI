@@ -31,6 +31,15 @@ ws.onmessage = function (data) {
   }
 };
 
+function browse(url){
+  $.ajax({
+    url:`http://localhost:${port}/openURL`,
+    data:{url:url},
+    success(msg){
+      layer.msg(msg);
+    }
+  })
+}
 
 
 function process() {
@@ -97,7 +106,7 @@ function checkUpdate(){
          content: `更新日期：${msg.uTime} <br>${msg.content}`,
          btn:['前往下载','取消'],
          yes: function(index, layero){
-           location.href=msg.link;
+          browse(msg.link)
          }
        });         
       }else{
