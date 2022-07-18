@@ -30,6 +30,9 @@
             <li class="nav-item">
               <a class="nav-link" href="javascript:checkUpdate()">检查更新<span class="badge bg-danger checkUpdate">新版本</span></a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="javascript:browse(`https://support.qq.com/products/419220`)">问题反馈</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -107,8 +110,8 @@
   开源版权声明
 </button>
 
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLog">
-  更新历史
+<button type="button" class="btn btn-primary" onclick="browse(`https://support.qq.com/products/419220`)">
+  问题反馈
 </button>
 
 
@@ -118,6 +121,11 @@
     新版本
     <span class="visually-hidden">1+</span>
   </span>
+</button>
+
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLog">
+  更新历史
 </button>
 
 <div class="modal fade" id="copyright" tabindex="-1" aria-labelledby="copyright" aria-hidden="true">
@@ -152,11 +160,6 @@
       </div>
       <div class="modal-body" id="updateHistory">
             
-      </div>
-      <hr>
-      <div class="modal-body">
-        <h4>.asar文件更新办法：</h4>
-        <p>关闭软件，将下载好的 app.asar 复制到软件目录下 <strong>resources/</strong> 覆盖掉源文件即可</p>
       </div>
       
       <div class="modal-footer">
