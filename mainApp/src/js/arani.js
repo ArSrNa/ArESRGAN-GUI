@@ -92,7 +92,7 @@ function paused(){
 
 
 function checkUpdate(){
-  var count=5;
+  var count=6;
   $.ajax({
     url:"https://api.arsrna.cn/release/appUpdate/ArESRGAN",
     dataType:'json',
