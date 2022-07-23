@@ -1,19 +1,30 @@
 port = 3000;
 var ws = new WebSocket(`ws://localhost:${port}/generate`);
 
-ws.onmessage = function (data) {
-  console.log(data.data); // 接收信息
+ws.onmessage = function (res) {
+  var data=JSON.parse(res.data);
+  console.log(data); // 接收信息
+  if(data.type=='log'){
   $("#logs").html(data.data);
   $("#progress").css("width", data.data);
   $("#progress").html(data.data);
+  $("#logProgress").show();
+    $("#processStop").removeClass("disabled");
+    $("#processStart").addClass("disabled");
+    $("#processStart").html(
+      `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>处理中`
+    );
+    $(`#filesBtn_${generallyPicsCount}`).html(`处理中 ${generallyPicsCount}`);
+  }
 
-  if (data.data == "exit0") {
+  if (data.type == "exit" && data.code=='exit0') {
     $("#processStop").addClass("disabled");
     $("#processStart").removeClass("disabled");
     $("#processStart").html(`处理`);
     //进程退出操作
     //正常退出
-    $("#process").attr("src", `${inputFile.files[0].path}_optimization.png`);
+    $("#process").attr('src',`${inputFile.files[0].path}_optimization.png`)
+
     $("#timer").html(
       `<p class="lead text-success">处理完成，耗时 ${processTime}ms</p>`
     );
@@ -22,12 +33,18 @@ ws.onmessage = function (data) {
     $("#progress").html(`处理完成`);
     $(".ar-line").hide();
     clearInterval(timer);
-  } else if (data.data == "exitnull") {
+    $(`#filesBtn_${generallyPicsCount}`).html(`完成 ${generallyPicsCount}`);
+    if(generallyPicsCount+1<filePath.length){
+         generallyPicsCount++;
+         sendCommand(generallyPicsCount);
+    }
+  } else if(data.type == "exit") {
     $("#logProgress").css("color", "red");
     $(".ar-line").hide();
     $("#processStop").addClass("disabled");
     $("#processStart").removeClass("disabled");
     $("#processStart").html(`处理`);
+    $("#progress").html(`非正常退出：${data.code}`);
     clearInterval(timer);
   }
 };
@@ -44,29 +61,14 @@ function browse(url) {
 
 function process() {
   var inputFile = $("#inputFile")[0];
+  filePath = [];
+  window.generallyPicsCount=0;
   if (inputFile.files.length > 0) {
-    $("#logProgress").show();
-    $("#processStop").removeClass("disabled");
-    $("#processStart").addClass("disabled");
-    $("#processStart").html(
-      `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>处理中`
-    );
-    var startTime = new Date().getTime();
-    timer = setInterval(() => {
-      var nowTime = new Date().getTime();
-      processTime = nowTime - startTime;
-      $("#timer").html(`处理中，耗时：${processTime}ms`);
-    }, 1);
-
-    var model = $("#model").val();
-    ws.send(
-      JSON.stringify({
-        file: inputFile.files[0].path,
-        model: model,
-      })
-    );
-    $("#aftLink").html(`${inputFile.files[0].path}_optimization.png`);
-    $("#aftLink").attr("href", `${inputFile.files[0].path}_optimization.png`);
+    for(var i=0;i<inputFile.files.length;i++){
+      filePath.push(inputFile.files[i].path);
+    }
+  
+    sendCommand(0);
   } else {
     layer.msg("请上传文件");
   }
@@ -76,25 +78,65 @@ function paused() {
   ws.send(JSON.stringify({ kill: true }));
 }
 
-function change() {
-  document.getElementById("inputFile").onchange = function () {
-    if (this.files.length >= 1) {
-      let file = this.files[0];
-      let reader = new FileReader();
-      reader.onload = function () {
-        document.getElementById("origin").src = this.result;
-      };
-      reader.readAsDataURL(file);
-      $("#befLink").html(file.path);
-      $("#befLink").attr("href", inputFile.files[0].path);
-    } else {
-      $("._arLoadingText").html("请选择文件");
-    }
-  };
+function sendCommand(i){
+  var startTime = new Date().getTime();
+    timer = setInterval(() => {
+      var nowTime = new Date().getTime();
+      processTime = nowTime - startTime;
+      $("#timer").html(`处理中，耗时：${processTime}ms`);
+    }, 1);
+    
+  console.log(`第${i}bottom`);
+  ws.send(
+    JSON.stringify({
+      file: filePath[i],
+      model: $("#model").val(),
+    })
+  );
+}
+
+function change(file) {
+  var files = file.files;
+  $('#fileLength').html(`共有：${files.length} 张图片`)
+  $('#origin').attr('src',files[0].path)
+  $('#filePath').html(files[0].path)
+  $('#resolutionBefore').html(`处理前：${$('#origin')[0].naturalWidth} * ${$('#origin')[0].naturalHeight}`)
+  $('#resolutionAfter').html(`处理后：${$('#origin')[0].naturalWidth*4} * ${$('#origin')[0].naturalHeight*4}`)
+  var fileList=[],
+      htmlTmp='';
+  for(var i1=0;i1<files.length;i1++){
+    fileList.push(files[i1]);
+    var temp = `<button type="button" class="btn btn-primary" id="filesBtn_${i1}" onclick="mutiChange(${i1})">${i1+1}</button>`;
+
+    htmlTmp += temp;    
+  }
+  //console.log(htmlTmp)
+  $('#photoPreviewList').html(htmlTmp)
+  
+}
+
+
+function mutiChange(i1){
+  var filePathMuti = $('#inputFile')[0].files[i1].path.replaceAll('\\','/');
+    $('#origin').attr('src',filePathMuti);
+    $('#filePath').html(filePathMuti)
+    $('#resolutionBefore').html(`处理前：${$('#origin')[0].naturalWidth} * ${$('#origin')[0].naturalHeight}`)
+    $('#resolutionAfter').html(`处理后：${$('#origin')[0].naturalWidth*4} * ${$('#origin')[0].naturalHeight*4}`)
+    $.ajax({
+      url:filePathMuti+'_optimization.png',
+      success(msg){
+        //console.log(msg)
+      $('#process').attr('src',filePathMuti+'_optimization.png');
+      $('#aftLink').html(filePathMuti+'_optimization.png')
+      },
+      error(err){
+        console.log({log:'处理后图片无法查询到',err:err});
+      }
+    })
 }
 
 function checkUpdate() {
-  var count = 6;
+  var count = 7;
   $.ajax({
     url: "https://api.arsrna.cn/release/appUpdate/ArESRGAN",
     dataType: "json",

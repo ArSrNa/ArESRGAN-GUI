@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "1.5",
+  "version": "2.0.0",
   "description": "Powered by Ar-Sr-Na",
   "main": "./src/index.js",
   "scripts": {
@@ -22,15 +22,16 @@
     },
     "win": {
       "icon": "./icon.ico",
-      "target": ["nsis","zip"]
+      "target": [
+        "nsis",
+        "zip"
+      ]
     },
-    "asarUnpack": [
-      
-    ],
-    "extraResources":[
+    "asarUnpack": [],
+    "extraResources": [
       {
-        "from":"backres/",
-        "to":"extraResources/"
+        "from": "backres/",
+        "to": "extraResources/"
       }
     ],
     "files": [
