@@ -45,7 +45,7 @@
           <div class="card-header">文件输入配置</div>
           <div class="card-body">
 
-                <input type="file" class="form-control" id="inputFile" oninput="change();$('#filePath').html(this.files[0].path)">
+                <input type="file" class="form-control" id="inputFile" oninput="change(this);" multiple accept="images/*">
                 <div class="text-muted" id="filePath"></div>
 
                 <div class="input-group">
@@ -55,6 +55,21 @@
                   <option value="realesrgan-x4plus-anime" selected>realesrgan-x4plus-anime（针对动画图片）</option>
                 </select>
                 </div>
+
+                <hr>
+
+                <div class="card">
+                  <div class="card-header">图片预览</div>
+                  <div class="card-body text-center">
+                    <div class="lead" id="fileLength">共有：0 张图片</div>
+                    <hr>
+                    <p>预览图片</p>
+                    <div class="btn-group" id="photoPreviewList" style="overflow-x: scroll;width: 100%;">
+                      
+                    </div>
+                  </div>
+                </div>
+                <br>
               <div class="d-grid gap-2">
                 <button class="btn btn-success" onclick="process()" id="processStart">处理</button>
                 </div>
@@ -83,23 +98,21 @@
           </div>
         
 <div class="col-lg-6">
-<div class="card">
-  <div class="card-header">图像输出</div>
-  <div class="card-body">
-    <div class=" row text-center">
-      <div class="col-12">
+
+    <div class="card">
+      <div class="card-header" id="resolutionBefore">处理前</div>
+      <div class="card-body text-center">
         <img id="origin" class="arimg" src="input.webp" alt="待上传">
-        <br>
-        <p class="line-limit-length"><a id="befLink" href="input.webp" target="_blank">处理前</a></p>
+      </div>
     </div>
-    
-    <div class="col-12">
+
+    <div class="card">
+      <div class="card-header" id="resolutionAfter">处理后</div>
+      <div class="card-body text-center">
       <img id="process" class="arimg" src="input.jpg_optimization.webp" alt="待处理">
-      <br>
-      <p class="line-limit-length"><a id="aftLink" href="input.jpg_optimization.webp" target="_blank">处理后</a></p>
     </div>
-      
-    </div>
+</div>
+
     
   </div>
 </div>
