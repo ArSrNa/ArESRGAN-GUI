@@ -74,12 +74,18 @@ function optimization(ws,data){
   ]); 
   esrgan.stderr.on('data', function (data) { 
     console.log(data.toString('utf8'));
-    ws.send(data.toString('utf8'));
+    ws.send(JSON.stringify({
+      type:'log',
+      data:data.toString('utf8')
+    }));
     //return data;
     }); 
     esrgan.on('exit', function (code, signal) { 
     console.log('child process eixt ,exit:' + code); 
-    ws.send('exit'+code);
+    ws.send(JSON.stringify({
+      type:'exit',
+      code:'exit'+code
+    }));
     return code
     });
   }
