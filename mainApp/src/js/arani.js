@@ -14,7 +14,7 @@ ws.onmessage = function (res) {
     $("#processStart").html(
       `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>处理中`
     );
-    $(`#filesBtn_${generallyPicsCount}`).html(`处理中 ${generallyPicsCount}`);
+    $(`#filesBtn_${generallyPicsCount}`).addClass('active');
   }
 
   if (data.type == "exit" && data.code=='exit0') {
@@ -33,7 +33,9 @@ ws.onmessage = function (res) {
     $("#progress").html(`处理完成`);
     $(".ar-line").hide();
     clearInterval(timer);
-    $(`#filesBtn_${generallyPicsCount}`).html(`完成 ${generallyPicsCount}`);
+    $(`#filesBtn_${generallyPicsCount}`).html(`第${generallyPicsCount}张完成，耗时 ${processTime}ms`);
+    $(`#filesBtn_${generallyPicsCount}`).addClass('active');
+  
     if(generallyPicsCount+1<filePath.length){
          generallyPicsCount++;
          sendCommand(generallyPicsCount);
@@ -85,7 +87,7 @@ function sendCommand(i){
       processTime = nowTime - startTime;
       $("#timer").html(`处理中，耗时：${processTime}ms`);
     }, 1);
-    
+
   console.log(`第${i}bottom`);
   ws.send(
     JSON.stringify({
@@ -106,11 +108,11 @@ function change(file) {
       htmlTmp='';
   for(var i1=0;i1<files.length;i1++){
     fileList.push(files[i1]);
-    var temp = `<button type="button" class="btn btn-primary" id="filesBtn_${i1}" onclick="mutiChange(${i1})">${i1+1}</button>`;
+    var temp = `<button type="button" class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}" onclick="mutiChange(${i1})">${i1}：${fileList[i1].name}}</button>`;
 
     htmlTmp += temp;    
   }
-  //console.log(htmlTmp)
+  console.log(fileList)
   $('#photoPreviewList').html(htmlTmp)
   
 }
