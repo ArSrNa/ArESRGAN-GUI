@@ -34,7 +34,7 @@ ws.onmessage = function (res) {
     $(".ar-line").hide();
     clearInterval(timer);
     $(`#filesBtn_${generallyPicsCount}`).html(`第${generallyPicsCount}张完成，耗时 ${processTime}ms`);
-    $(`#filesBtn_${generallyPicsCount}`).addClass('active');
+    $(`#filesBtn_${generallyPicsCount}`).removeClass('active');
   
     if(generallyPicsCount+1<filePath.length){
          generallyPicsCount++;
@@ -108,7 +108,7 @@ function change(file) {
       htmlTmp='';
   for(var i1=0;i1<files.length;i1++){
     fileList.push(files[i1]);
-    var temp = `<button type="button" class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}" onclick="mutiChange(${i1})">${i1}：${fileList[i1].name}}</button>`;
+    var temp = `<button type="button" class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}" onclick="mutiChange(${i1})">${i1}：${fileList[i1].name}</button>`;
 
     htmlTmp += temp;    
   }
