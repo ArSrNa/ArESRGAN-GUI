@@ -14,7 +14,7 @@ if (require('electron-squirrel-startup')) {
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 600,
   });
@@ -26,6 +26,7 @@ const createWindow = () => {
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
 };
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -49,6 +50,17 @@ app.on('activate', () => {
   }
 });
 
+/*此处在debug有效，请勿生产时使用！
+esrganPath = path.join(__dirname, "../backres/realesrgan-ncnn-vulkan.exe");
+*/
+/*此处在production有效，请勿在开发时使用！*/
+esrganPath = path.join(
+  process.cwd(),
+  "/resources/extraResources/realsgan",
+  "realesrgan-ncnn-vulkan.exe"
+);
+
+
 
 eapp.ws('/generate',function(ws,req){
   console.log('Powered by Ar-Sr-Na Express');
@@ -67,13 +79,15 @@ eapp.ws('/generate',function(ws,req){
 function optimization(ws,data){
   var file = data.file;
   var model = data.model;
-  esrgan = spawn(path.join(__dirname.replace('src',''), `../realsgan/realesrgan-ncnn-vulkan.exe`),[
+  esrgan = spawn(esrganPath,[
     '-i',file,
     '-o',`${file}_optimization.png`,
     '-n',model
   ]); 
   esrgan.stderr.on('data', function (data) { 
     console.log(data.toString('utf8'));
+    var progressSet = parseInt(data)/100
+    if(typeof progressSet=='number') mainWindow.setProgressBar(progressSet)
     ws.send(JSON.stringify({
       type:'log',
       data:data.toString('utf8')
@@ -81,6 +95,7 @@ function optimization(ws,data){
     //return data;
     }); 
     esrgan.on('exit', function (code, signal) { 
+    mainWindow.setProgressBar(-1)
     console.log('child process eixt ,exit:' + code); 
     ws.send(JSON.stringify({
       type:'exit',
@@ -91,6 +106,7 @@ function optimization(ws,data){
   }
 
     ws.on('close', function (code,signal) {
+      mainWindow.setProgressBar(-1)
       console.log('close connection')
       ws.send(JSON.stringify({
         'force':true,
@@ -103,6 +119,7 @@ function optimization(ws,data){
 function killProcess() {
   esrgan.kill('SIGINT');
   console.log('killing');
+  mainWindow.setProgressBar(-1)
   //res.send('exitnull')
 }
 
