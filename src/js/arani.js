@@ -138,7 +138,7 @@ function mutiChange(i1){
 }
 
 function checkUpdate() {
-  var count = 7;
+  var count = 8;
   $.ajax({
     url: "https://api.arsrna.cn/release/appUpdate/ArESRGAN",
     dataType: "json",
