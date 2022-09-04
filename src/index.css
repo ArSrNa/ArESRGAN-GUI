@@ -1,0 +1,24 @@
+.arimg {
+  height: 30vh;
+  width: 100%;
+  object-fit: contain;
+  justify-content: center;
+}
+
+#befLink,
+#aftLink {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-limit-length {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filesBtn {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

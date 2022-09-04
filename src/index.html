@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ESRGAN GUI | Ar-Sr-Na</title>
+<script src="res/jquery.min.js"></script>
+<link rel="stylesheet" href="res/bootstrap.min.css">
+    <script src="res/bootstrap.bundle.min.js"></script>
+    <script src="res/json2html.min.js"></script>
+<link rel="stylesheet" href="res/font-awesome-4.7.0/css/font-awesome.min.css">
+<link href="res/armain.css" rel="stylesheet">
+<link href="index.css" rel="stylesheet">
+<script src="./js/arani.js"></script>
+<script src="res/layer/layer.js"></script>
+
+
+  </head>
+  <body style="padding-top: 70px;min-height: 60vh;">  
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top nav-blur" style="height: 60px;">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">资源与应用</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">ESRGAN GUI静态图像版</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="javascript:checkUpdate()">检查更新<span class="badge bg-danger checkUpdate">新版本</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="javascript:browse(`https://support.qq.com/products/419220`)">问题反馈</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">文件输入配置</div>
+          <div class="card-body">
+
+                <input type="file" class="form-control" id="inputFile" oninput="change(this);" multiple accept="image/*">
+                <div class="text-muted" id="filePath"></div>
+
+                <div class="input-group">
+                <label class="input-group-text" for="model">选择模型</label>
+                <select class="form-select" id="model">
+                  <option value="realesrnet-x4plus">realesrnet-x4plus（针对一般图片）</option>
+                  <option value="realesrgan-x4plus-anime" selected>realesrgan-x4plus-anime（针对动画图片）</option>
+                </select>
+                </div>
+
+                <hr>
+
+                <div class="card">
+                  <div class="card-header">图片预览</div>
+                  <div class="card-body">
+                    <p>单击列表预览图片</p>
+                    <div class="list-group" id="photoPreviewList" style="overflow-y: scroll;height: 25vh;">
+                      
+                    </div>
+                  </div>
+                </div>
+                <br>
+              <div class="d-grid gap-2">
+                <button class="btn btn-success" onclick="process()" id="processStart">处理</button>
+                </div>
+                <div class="alert alert-warning" role="alert">
+                  请仔细检查所有配置以及文件内容
+                </div>
+            
+                <div class="d-grid gap-2">
+                <button class="btn btn-danger disabled" onclick="paused()" id="processStop">终止</button>
+              </div>
+                <div class="alert alert-danger" role="alert">
+                  按下后将会强行干掉子进程，请悉知
+                </div>
+                <div id="timer" class="lead">耗时：0.00s</div>
+                <div class="row align-items-center" id="logProgress">
+                  <p id="logs" class="col">正在处理</p>
+                  <div class="spinner-border ms-auto col-1" role="status" aria-hidden="true"></div>
+                </div>
+              <hr>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress">0%</div>
+              </div>
+              
+            </div>
+          </div>
+          </div>
+        
+<div class="col-lg-6">
+
+    <div class="card">
+      <div class="card-header" id="resolutionBefore">处理前</div>
+      <div class="card-body text-center">
+        <img id="origin" class="arimg" src="input.webp" alt="待上传">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" id="resolutionAfter">处理后</div>
+      <div class="card-body text-center">
+      <img id="process" class="arimg" src="input.jpg_optimization.webp" alt="待处理">
+    </div>
+</div>
+
+    
+  </div>
+</div>
+
+
+      <hr>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#copyright">
+  开源版权声明
+</button>
+
+<button type="button" class="btn btn-primary" onclick="browse(`https://support.qq.com/products/419220`)">
+  问题反馈
+</button>
+
+
+<button type="button" class="btn btn-primary position-relative" onclick="checkUpdate()">
+  检查更新
+  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger checkUpdate">
+    新版本
+    <span class="visually-hidden">1+</span>
+  </span>
+</button>
+
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLog">
+  更新历史
+</button>
+
+<div class="modal fade" id="copyright" tabindex="-1" aria-labelledby="copyright" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="copyright">开源版权声明</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>本软件源模型来自Real-ESRGAN：https://github.com/xinntao/Real-ESRGAN，并遵循 BSD 3-Clause License 公共许可协议
+          <br>本软件UI来自Bootstrap：https://github.com/twbs/bootstrap，并遵守MIT协议
+          <br>框架来自electron及其附属代码：https://github.com/electron/electron，并遵循MIT许可协议
+          <br>前后端传输来自Socket.io与express，并遵守其原开源许可协议
+          <br>本软件作者：Ar-Sr-Na（https://www.arsrna.cn）拥有修改与二次创作该作品的权利，并受法律保护
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="updateLog" tabindex="-1" aria-labelledby="updateLog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="updateLog">更新历史</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="updateHistory">
+            
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>   
+
+</div>
+
+      <hr>
+</body>
+<script>
+  $(document).ready(function(){
+    checkUpdate();
+    $('#logProgress').hide()
+  })
+</script>
+<script src="https://www.arsrna.cn/footer.js"></script>
+</html>
