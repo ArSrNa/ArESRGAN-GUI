@@ -25,7 +25,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">ESRGAN GUI静态图像版</a>
+              <a class="nav-link active" id="appName" aria-current="page" href="#">ESRGAN GUI静态图像版</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="javascript:checkUpdate()">检查更新<span class="badge bg-danger checkUpdate">新版本</span></a>
@@ -45,7 +45,13 @@
           <div class="card-header">文件输入配置</div>
           <div class="card-body">
 
-                <input type="file" class="form-control" id="inputFile" oninput="change(this);" multiple accept="image/*">
+                <div id="fileUpload">
+                 拖拽文件到此 或
+                 <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
+                上传
+                </div>
+                <input style="display: none;" type="file" class="form-control" id="inputFile" oninput="change(this.files);" multiple accept="image/*">
+
                 <div class="text-muted" id="filePath"></div>
 
                 <div class="input-group">
@@ -188,7 +194,8 @@
   $(document).ready(function(){
     checkUpdate();
     $('#logProgress').hide()
+    $('#appName').html(`ESRGAN GUI静态图像版 ${version}`)
   })
 </script>
-<script src="https://www.arsrna.cn/footer.js"></script>
+<!-- <script src="https://www.arsrna.cn/footer.js"></script> -->
 </html>
