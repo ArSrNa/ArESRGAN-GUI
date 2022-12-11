@@ -23,7 +23,7 @@ ws.onmessage = function (res) {
     $("#processStart").html(`处理`);
     //进程退出操作
     //正常退出
-    $("#process").attr('src',`${inputFile.files[0].path}_optimization.png`)
+    $("#process").attr('src',`${fileList[generallyPicsCount].path}_optimization.png`)
 
     $("#timer").html(
       `<p class="lead text-success">处理完成，耗时 ${processTime}ms</p>`
