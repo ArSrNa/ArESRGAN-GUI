@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Powered by Ar-Sr-Na",
   "main": "./src/index.js",
   "scripts": {
