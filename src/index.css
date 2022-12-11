@@ -21,4 +21,16 @@
 .filesBtn {
   text-overflow: ellipsis;
   white-space: nowrap;
+  overflow-x: hidden;
+}
+
+#fileUpload{
+  border: 1px;
+  border-color: rgb(150,150,150);
+  border-radius: 6px;
+  height: 100px;
+  border-style: dashed;
+  margin-bottom: 10px;
+  text-align: center;
+  line-height:100px;
 }
