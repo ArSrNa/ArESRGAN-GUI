@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "2.2.0",
+  "version": "2.5.0",
   "description": "Powered by Ar-Sr-Na",
   "main": "./src/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "builder": "electron-builder --win --x64 --win --ia32",
+    "builder": "electron-builder --win --x64",
     "build": "electron-packager ./ ArSrNaESRGAN --win --ignore test/ --ignore realsgan/ --ignore electron-v17.0.0-win32-x64.zip --arch=x64 --out ./out --electron-zip-dir=./ --icon=./icon.ico --overwrite --asar"
   },
   "build": {
