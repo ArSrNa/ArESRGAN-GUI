@@ -1,31 +1,28 @@
 # RealESRGAN
 
-We have provided five models:
+We have provided the following models:
 
-1. realesrgan-x4plus  (default)
-2. realesrnet-x4plus
-3. realesrgan-x4plus-anime (optimized for anime images, small size)
-4. RealESRGANv2-animevideo-xsx2 (anime video, X2)
-5. RealESRGANv2-animevideo-xsx4 (anime video, X4)
+1. realesr-animevideov3 (default)
+2. realesrgan-x4plus
+3. realesrgan-x4plus-anime
 
 Command:
 
 1. ./realesrgan-ncnn-vulkan.exe -i input.jpg -o output.png
-2. ./realesrgan-ncnn-vulkan.exe -i input.jpg -o output.png -n realesrnet-x4plus
-3. ./realesrgan-ncnn-vulkan.exe -i input.jpg -o output.png -n realesrgan-x4plus-anime
-4. ./realesrgan-ncnn-vulkan.exe -i input_folder -o outputfolder -n RealESRGANv2-animevideo-xsx2 -s 2 -f jpg
-5. ./realesrgan-ncnn-vulkan.exe -i input_folder -o outputfolder -n RealESRGANv2-animevideo-xsx4 -s 4 -f jpg
+2. ./realesrgan-ncnn-vulkan.exe -i input.jpg -o output.png -n realesr-animevideov3
+3. ./realesrgan-ncnn-vulkan.exe -i input_folder -o outputfolder -n realesr-animevideov3 -s 2 -f jpg
+4. ./realesrgan-ncnn-vulkan.exe -i input_folder -o outputfolder -n realesr-animevideov3 -s 4 -f jpg
 
 
 Commands for enhancing anime videos:
 
 1. Use ffmpeg to extract frames from a video (Remember to create the folder `tmp_frames` ahead)
 
-    ffmpeg -i onepiece_demo.mp4 -qscale:v 1 -qmin 1 -qmax 1 -vsync 0 tmp_frames/frame%08d.png
+    ffmpeg -i onepiece_demo.mp4 -qscale:v 1 -qmin 1 -qmax 1 -vsync 0 tmp_frames/frame%08d.jpg
 
 2. Inference with Real-ESRGAN executable file (Remember to create the folder `out_frames` ahead)
 
-    ./realesrgan-ncnn-vulkan.exe -i tmp_frames -o out_frames -n RealESRGANv2-animevideo-xsx2 -s 2 -f jpg
+    ./realesrgan-ncnn-vulkan.exe -i tmp_frames -o out_frames -n realesr-animevideov3 -s 2 -f jpg
 
 3. Merge the enhanced frames back into a video
 
