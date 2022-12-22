@@ -50,7 +50,8 @@
                  <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
                 上传
                 </div>
-                <input style="display: none;" type="file" class="form-control" id="inputFile" oninput="change(this.files);" multiple accept="image/*">
+                <input style="display: none;" type="file" class="form-control" id="inputFile" oninput="
+                fileChange.add(this.files);" multiple accept="image/*">
 
                 <div class="text-muted" id="filePath"></div>
 
@@ -67,15 +68,15 @@
                 <div class="card">
                   <div class="card-header">图片预览</div>
                   <div class="card-body">
-                    <p>单击列表预览图片</p>
-                    <div class="list-group" id="photoPreviewList" style="overflow-y: scroll;overflow-x: hidden;height: 25vh;">
+                    <p>单击列表前数字预览图片</p>
+                    <div class="list-group" id="photoPreviewList" style="overflow-x: hidden;min-height: 25vh;">
                       
                     </div>
                   </div>
                 </div>
                 <br>
               <div class="d-grid gap-2">
-                <button class="btn btn-success" onclick="process()" id="processStart">处理</button>
+                <button class="btn btn-success disabled" onclick="process()" id="processStart">处理</button>
                 </div>
                 <div class="alert alert-warning" role="alert">
                   请仔细检查所有配置以及文件内容
