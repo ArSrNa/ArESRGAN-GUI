@@ -1,5 +1,18 @@
 port = 3000;
 var ws = new WebSocket(`ws://localhost:${port}/generate`);
+window.fileList=[]
+var appInfo={
+  count:10
+}
+
+
+//Array初始化代码
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
 
 ws.onmessage = function (res) {
   var data=JSON.parse(res.data);
@@ -95,26 +108,57 @@ function sendCommand(i){
   );
 }
 
-function change(files) {
-  $('#fileLength').html(`共有：${files.length} 张图片`)
-  $('#origin').attr('src',files[0].path)
-  $('#filePath').html(files[0].path)
-  $('#resolutionBefore').html(`处理前：${$('#origin')[0].naturalWidth} * ${$('#origin')[0].naturalHeight}`)
-  $('#resolutionAfter').html(`处理后：${$('#origin')[0].naturalWidth*4} * ${$('#origin')[0].naturalHeight*4}`)
-      fileList=files;
-      var htmlTmp='';
-  for(var i1=0;i1<files.length;i1++){
-    //fileList.push(files[i1]);
-    var temp = `
-    <button type="button" class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}" onclick="mutiChange(${i1})">
-    <span class="badge bg-primary rounded-pill">${i1+1}</span>
-    ${fileList[i1].name}</button>`;
-    htmlTmp += temp;    
-  }
-  console.log(fileList)
-  $('#photoPreviewList').html(htmlTmp)
+
+var fileChange={
+  add:function(files){
+    for(var i0=0;i0<files.length;i0++){
+      fileList.push(files[i0]);
+    }
+    fileChange.change()
+  },
+
+  change:function(){
+    //分辨率信息
+    $('#resolutionBefore').html(`处理前：${$('#origin')[0].naturalWidth} * ${$('#origin')[0].naturalHeight}`)
+    $('#resolutionAfter').html(`处理后：${$('#origin')[0].naturalWidth*4} * ${$('#origin')[0].naturalHeight*4}`)
   
+    //定义列表模板
+    var htmlTmp='';
+    for(var i1=0;i1<fileList.length;i1++){
+      var temp = `
+      <li class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}">
+      <button type="button" class="btn-close" onclick="fileChange.remove(${i1});"></button>
+      <span class="badge bg-primary rounded-pill" onclick="mutiChange(${i1})">${i1+1}</span>
+      ${fileList[i1].name}
+      </li>`;
+      htmlTmp += temp;    
+    }
+    console.log(fileList)
+    $('#photoPreviewList').html(htmlTmp)
+
+    try{
+    //更新基本信息
+    $('#fileLength').html(`共有：${fileList.length} 张图片`)
+    $('#origin').attr('src',fileList[0].path)
+    $('#filePath').html(fileList[0].path)
+    }catch(err){
+      console.warn(`更新列表信息err ${err}`)
+    }
+
+    if(fileList.length==0){
+      $('#processStart').addClass('disabled')
+    }else{
+      $('#processStart').removeClass('disabled')
+    }
+  },
+
+  remove:function(key){
+    fileList.remove(key,key);
+    fileChange.change()
+  }
 }
+
+
 
 
 function mutiChange(i1){
@@ -136,8 +180,37 @@ function mutiChange(i1){
     })
 }
 
+window.onload = function () {
+  var oBox = document.getElementById('fileUpload');
+  //进入子集的时候 会触发ondragover 频繁触发 不给ondrop机会
+  oBox.ondragenter = function(){
+   oBox.innerHTML = '释放鼠标即可上传';
+  };
+  oBox.ondragover = function(){
+   return false;
+  };
+  oBox.ondragleave = function(){
+   oBox.innerHTML = `拖拽文件到此 或
+   <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
+  上传`;
+  };
+  oBox.ondrop = function(ev){
+    oBox.innerHTML = `拖拽文件到此 或
+   <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
+  上传`
+   var oFile = ev.dataTransfer.files;
+   console.log(oFile)
+   fileChange.add(oFile)
+   return false;
+  };
+ };
+
+
+console.log('Powered by Ar-Sr-Na RenderInfinity')
+console.log('More infomation: https://www.arsrna.cn')
+
+
 function checkUpdate() {
-  var count = 9;
   version = `2.2.0`
   $.ajax({
     url: "https://api.arsrna.cn/release/appUpdate/ArESRGAN",
@@ -145,7 +218,7 @@ function checkUpdate() {
     success(msg) {
       console.log(msg);
       $("#updateHistory").html(msg.history);
-      if (msg.count > count) {
+      if (msg.count > appInfo.count) {
         $(".checkUpdate").show();
         layer.open({
           title: `发现新版本 ${msg.rName} ${msg.vNumber}`,
@@ -167,41 +240,3 @@ function checkUpdate() {
     },
   });
 }
-
-
-
-
-window.onload = function () {
-  var oBox = document.getElementById('fileUpload');
-  //进入子集的时候 会触发ondragover 频繁触发 不给ondrop机会
-  oBox.ondragenter = function(){
-   oBox.innerHTML = '释放鼠标即可上传';
-  };
-  oBox.ondragover = function(){
-   return false;
-  };
-  oBox.ondragleave = function(){
-   oBox.innerHTML = `拖拽文件到此 或
-   <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
-  上传`;
-  };
-  oBox.ondrop = function(ev){
-    oBox.innerHTML = `拖拽文件到此 或
-   <a style="color:royalblue;" onclick="document.getElementById('inputFile').click()">选择文件</a>
-  上传`
-   var oFile = ev.dataTransfer.files;
-   console.log(oFile)
-   change(oFile)
-   for(var ic=0;ic<oFile.length;ic++){
-    console.log(oFile[ic].path)
-   }
-   //reader.readAsDataURL(oFile,'base64');
-   return false;
-  };
- };
-
-
-console.log('Powered by Ar-Sr-Na RenderInfinity')
-console.log('More infomation: https://www.arsrna.cn')
-console.log(`We are glad that you use and trust our application products`)
-console.log(`Have a good time!`)
