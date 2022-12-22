@@ -2,7 +2,8 @@ port = 3000;
 var ws = new WebSocket(`ws://localhost:${port}/generate`);
 window.fileList=[]
 var appInfo={
-  count:10
+  count:10,
+  version:`2.5.0`
 }
 
 
@@ -211,7 +212,6 @@ console.log('More infomation: https://www.arsrna.cn')
 
 
 function checkUpdate() {
-  version = `2.2.0`
   $.ajax({
     url: "https://api.arsrna.cn/release/appUpdate/ArESRGAN",
     dataType: "json",
