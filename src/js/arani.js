@@ -2,10 +2,21 @@ port = 3000;
 var ws = new WebSocket(`ws://localhost:${port}/generate`);
 window.fileList=[]
 var appInfo={
-  count:10,
-  version:`2.5.0`
+  count:11,//11
+  version:`2.6.0`
 }
 
+console.log(`
+####    ##                    #         
+#        #                              
+###      #    #  #   ####    ##     ### 
+#        #    #  #   ##       #    #  # 
+#        #    ## #     ##     #    #  # 
+####    ###     ##   ####    ###    ####
+              #  #
+               ##
+`)
+console.warn('我永远喜欢爱莉希雅！')
 
 //Array初始化代码
 Array.prototype.remove = function(from, to) {
@@ -19,9 +30,9 @@ ws.onmessage = function (res) {
   var data=JSON.parse(res.data);
   console.log(data); // 接收信息
   if(data.type=='log'){
-  $("#logs").html(data.data);
-  $("#progress").css("width", data.data);
-  $("#progress").html(data.data);
+  $(".ArProgressLogText").html(data.data);
+  $(".EProgress").css("width", data.data);
+  $(".EProgress").html(data.data);
   $("#logProgress").show();
     $("#processStop").removeClass("disabled");
     $("#processStart").addClass("disabled");
@@ -47,7 +58,7 @@ ws.onmessage = function (res) {
     $("#progress").html(`处理完成`);
     $(".ar-line").hide();
     clearInterval(timer);
-    $(`#filesBtn_${generallyPicsCount}`).html(`第${generallyPicsCount}张完成，耗时 ${processTime}ms`);
+    $(`#filesBtn_${generallyPicsCount}`).html(`第 ${generallyPicsCount+1} 张完成，耗时 ${(processTime/1000).toFixed(1)}s`);
     $(`#filesBtn_${generallyPicsCount}`).removeClass('active');
   
     if(generallyPicsCount+1<filePath.length){
@@ -55,7 +66,10 @@ ws.onmessage = function (res) {
          sendCommand(generallyPicsCount);
     }
   } else if(data.type == "exit") {
+    //异常退出交互
     $("#logProgress").css("color", "red");
+    $(".EProgress").css("background-color", "red");
+
     $(".ar-line").hide();
     $("#processStop").addClass("disabled");
     $("#processStart").removeClass("disabled");
@@ -76,6 +90,9 @@ function browse(url) {
 }
 
 function process() {
+  $("#logProgress").css("color", "");
+  $(".EProgress").css("background-color", "royalblue");
+
   filePath = [];
   window.generallyPicsCount=0;
   if (fileList.length > 0) {
@@ -97,8 +114,8 @@ function sendCommand(i){
     timer = setInterval(() => {
       var nowTime = new Date().getTime();
       processTime = nowTime - startTime;
-      $("#timer").html(`处理中，耗时：${(processTime/1000).toFixed(2)} s`);
-    }, 1);
+      $("#timer").html(`处理中，耗时：${(processTime/1000).toFixed(1)} s`);
+    }, 100);
 
   console.log(`第 ${i} bottom`);
   ws.send(
@@ -127,9 +144,9 @@ var fileChange={
     var htmlTmp='';
     for(var i1=0;i1<fileList.length;i1++){
       var temp = `
-      <li class="list-group-item list-group-item-action filesBtn" id="filesBtn_${i1}">
+      <li class="list-group-item list-group-item-action filesBtn" onclick="mutiChange(${i1})" id="filesBtn_${i1}">
       <button type="button" class="btn-close" onclick="fileChange.remove(${i1});"></button>
-      <span class="badge bg-primary rounded-pill" onclick="mutiChange(${i1})">${i1+1}</span>
+      <span class="badge bg-primary rounded-pill">${i1+1}</span>
       ${fileList[i1].name}
       </li>`;
       htmlTmp += temp;    
@@ -170,7 +187,7 @@ function mutiChange(i1){
     $('#resolutionAfter').html(`处理后：${$('#origin')[0].naturalWidth*4} * ${$('#origin')[0].naturalHeight*4}`)
     $.ajax({
       url:filePathMuti+'_optimization.png',
-      success(msg){
+      success(){
         //console.log(msg)
       $('#process').attr('src',filePathMuti+'_optimization.png');
       $('#aftLink').html(filePathMuti+'_optimization.png')
@@ -220,14 +237,20 @@ function checkUpdate() {
       $("#updateHistory").html(msg.history);
       if (msg.count > appInfo.count) {
         $(".checkUpdate").show();
-        layer.open({
-          title: `发现新版本 ${msg.rName} ${msg.vNumber}`,
-          content: `更新日期：${msg.uTime} <br>${msg.content}`,
-          btn: ["前往下载", "取消"],
-          yes: function (index, layero) {
-            browse(msg.link);
-          },
-        });
+          //if(!(localStorage[`ignoreVer_${appInfo.count}`]=='true')){
+            layer.open({
+              title: `发现新版本 ${msg.rName} ${msg.vNumber}`,
+              content: `更新日期：${msg.uTime} <br>${msg.content}`,
+              btn: ["前往下载", "取消"],
+              yes: function () {
+                browse(msg.link);
+              },
+              btn2:function(){
+                localStorage.setItem(`ignoreVer_${appInfo.count}`,true)
+              }
+            });
+          //}
+        
       } else {
         $(".checkUpdate").hide();
         layer.msg("未发现新版本");

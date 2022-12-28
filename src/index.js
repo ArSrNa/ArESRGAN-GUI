@@ -51,14 +51,14 @@ app.on('activate', () => {
 });
 
 //此处在debug有效，请勿生产时使用！
-//esrganPath = path.join(__dirname, "../backres/realsgan/realesrgan-ncnn-vulkan.exe");
+esrganPath = path.join(__dirname, "../backres/realsgan/realesrgan-ncnn-vulkan.exe");
 
 /*此处在production有效，请勿在开发时使用！*/
-esrganPath = path.join(
-  process.cwd(),
-  "/resources/extraResources/realsgan",
-  "realesrgan-ncnn-vulkan.exe"
-);
+// esrganPath = path.join(
+//   process.cwd(),
+//   "/resources/extraResources/realsgan",
+//   "realesrgan-ncnn-vulkan.exe"
+// );
 
 
 
