@@ -68,7 +68,7 @@
                 <div class="card">
                   <div class="card-header">图片预览</div>
                   <div class="card-body">
-                    <p>单击列表前数字预览图片</p>
+                    <p>单击列表预览图片</p>
                     <div class="list-group" id="photoPreviewList" style="overflow-x: hidden;min-height: 25vh;">
                       
                     </div>
@@ -89,14 +89,22 @@
                   按下后将会强行干掉子进程，请悉知
                 </div>
                 <div id="timer" class="lead">耗时：0.00s</div>
-                <div class="row align-items-center" id="logProgress">
-                  <p id="logs" class="col">正在处理</p>
-                  <div class="spinner-border ms-auto col-1" role="status" aria-hidden="true"></div>
+
+                <div id="logProgress">
+                  <div class="container d-flex" style="margin-top:10px;border-radius: 5px;background-color: #e2e2e2;box-shadow: 0px 0px 8px 2px #AAAAAA;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="margin: 5px;" width="30" height="30" fill="currentColor" class="col-1 bi bi-info-circle-fill" viewBox="0 0 16 16">
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                      </svg> 
+                <div class="col-11">
+                    <div class="lead ArProgressLogText">等待提交</div>
+                    <div class="ArloadLine">
+                        <div class="EProgress"></div>
+                    </div>
                 </div>
-              <hr>
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: 0%;" id="progress">0%</div>
-              </div>
+                </div>
+                </div>
+              
+ 
               
             </div>
           </div>
@@ -107,14 +115,14 @@
     <div class="card">
       <div class="card-header" id="resolutionBefore">处理前</div>
       <div class="card-body text-center">
-        <img id="origin" class="arimg" src="input.webp" alt="待上传">
+        <img id="origin" class="arimg">
       </div>
     </div>
 
     <div class="card">
       <div class="card-header" id="resolutionAfter">处理后</div>
       <div class="card-body text-center">
-      <img id="process" class="arimg" src="input.jpg_optimization.webp" alt="待处理">
+      <img id="process" class="arimg" >
     </div>
 </div>
 
@@ -194,7 +202,7 @@
 <script>
   $(document).ready(function(){
     checkUpdate();
-    $('#logProgress').hide()
+    //$('#logProgress').hide()
     $('#appName').html(`ESRGAN GUI静态图像版 ${appInfo.version}`)
   })
 </script>
