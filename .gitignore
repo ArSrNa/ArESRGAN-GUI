@@ -91,3 +91,7 @@ outputs/
 build/
 electron-v17.0.0-win32-x64.zip
 软件著作权申请/
+
+outputs/setup/Output/ArSrNa 图像超分辨率 v1.2.exe
+outputs/ArSrNaESRGAN-win32-x64/ArSrNaESRGAN.exe
+mainApp/electron-v17.0.0-win32-x64.zip
