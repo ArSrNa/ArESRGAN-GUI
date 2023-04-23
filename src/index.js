@@ -68,14 +68,14 @@ app.on('activate', () => {
 });
 
 //此处在debug有效，请勿生产时使用！
-// esrganPath = path.join(__dirname, "../backres/realsgan/realesrgan-ncnn-vulkan.exe");
+esrganPath = path.join(__dirname, "../backres/realsgan/realesrgan-ncnn-vulkan.exe");
 
 /*此处在production有效，请勿在开发时使用！*/
-esrganPath = path.join(
-  process.cwd(),
-  "/resources/extraResources/realsgan",
-  "realesrgan-ncnn-vulkan.exe"
-);
+// esrganPath = path.join(
+//   process.cwd(),
+//   "/resources/extraResources/realsgan",
+//   "realesrgan-ncnn-vulkan.exe"
+// );
 
 ipcMain.on('openDevTools', (evt, msg) => {
   mainWindow.webContents.openDevTools();
@@ -131,10 +131,10 @@ var exec = require('child_process').exec
 ipcMain.on('openURL', (evt, msg) => {
   switch (process.platform) {
     case "darwin":
-      exec(`open ${req.query.url}`);
+      exec(`open ${msg.url}`);
       break;
     case "win32":
-      exec(`start ${req.query.url}`);
+      exec(`start ${msg.url}`);
       break;
     default:
       exec('xdg-open', [url]);

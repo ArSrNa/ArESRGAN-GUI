@@ -128,7 +128,7 @@ var fileChange = {
     for (var i0 = 0; i0 < files.length; i0++) {
       fileList.push(files[i0]);
     }
-    fileChange.change()
+    fileChange.change();
   },
 
   change: function () {
