@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>ESRGAN GUI | Ar-Sr-Na</title>
-  <script src="res/jquery.min.js"></script>
+  <script>window.$ = window.jQuery = require("res/jquery.min.js");</script>
+  <!-- <script src="res/jquery.min.js"></script> -->
   <link rel="stylesheet" href="res/bootstrap.min.css">
   <script src="res/bootstrap.bundle.min.js"></script>
   <script src="res/json2html.min.js"></script>
@@ -28,15 +29,17 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link active" id="appName" aria-current="page" href="#">ESRGAN GUI静态图像版</a>
+            <a class="nav-link active" id="appName" href="#">ESRGAN GUI静态图像版</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="javascript:checkUpdate()">检查更新<span
                 class="badge bg-danger checkUpdate">新版本</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" aria-current="page"
-              href="javascript:browse(`https://support.qq.com/products/419220`)">问题反馈</a>
+            <a class="nav-link" href="javascript:browse(`https://support.qq.com/products/419220`)">问题反馈</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="javascript:openDevTools()">调试控制台</a>
           </li>
         </ul>
       </div>
