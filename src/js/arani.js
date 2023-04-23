@@ -1,9 +1,10 @@
-port = 3000;
-var ws = new WebSocket(`ws://localhost:${port}/generate`);
+//port = 3000;
+var { ipcRenderer } = require('electron')
+// var ws = new WebSocket(`ws://localhost:${port}/generate`);
 window.fileList = []
 var appInfo = {
-  count: 11,//11
-  version: `2.6.0`
+  count: 12,
+  version: `3.0.0`
 }
 
 console.log(`
@@ -25,9 +26,11 @@ Array.prototype.remove = function (from, to) {
   return this.push.apply(this, rest);
 };
 
+function openDevTools() {
+  ipcRenderer.send('openDevTools');
+}
 
-ws.onmessage = function (res) {
-  var data = JSON.parse(res.data);
+ipcRenderer.on('generate', (evt, data) => {
   console.log(data); // 接收信息
   if (data.type == 'log') {
     $(".ArProgressLogText").html(data.data);
@@ -42,7 +45,7 @@ ws.onmessage = function (res) {
     $(`#filesBtn_${generallyPicsCount}`).addClass('active');
   }
 
-  if (data.type == "exit" && data.code == 'exit0') {
+  if (data.type == "exit" && parseInt(data.code) == 0) {
     $("#processStop").addClass("disabled");
     $("#processStart").removeClass("disabled");
     $("#processStart").html(`处理`);
@@ -77,16 +80,11 @@ ws.onmessage = function (res) {
     $("#progress").html(`非正常退出：${data.code}`);
     clearInterval(timer);
   }
-};
+})
+
 
 function browse(url) {
-  $.ajax({
-    url: `http://localhost:${port}/openURL`,
-    data: { url: url },
-    success(msg) {
-      layer.msg(msg);
-    },
-  });
+  ipcRenderer.send('openURL', { url })
 }
 
 function process() {
@@ -106,7 +104,7 @@ function process() {
 }
 
 function paused() {
-  ws.send(JSON.stringify({ kill: true }));
+  ipcRenderer.send('killESRGAN')
 }
 
 function sendCommand(i) {
@@ -116,14 +114,12 @@ function sendCommand(i) {
     processTime = nowTime - startTime;
     $("#timer").html(`处理中，耗时：${(processTime / 1000).toFixed(1)} s`);
   }, 100);
-
   console.log(`第 ${i} bottom`);
-  ws.send(
-    JSON.stringify({
-      file: filePath[i],
-      model: $("#model").val(),
-    })
-  );
+  ipcRenderer.send('generate', {
+    file: filePath[i],
+    model: $("#model").val(),
+  })
+
 }
 
 
