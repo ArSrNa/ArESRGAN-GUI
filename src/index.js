@@ -1,9 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+var { Menu, app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 var spawn = require('child_process').spawn;
-var eapp = require('express')();
-const expressWs = require('express-ws');
-expressWs(eapp);
+// var eapp = require('express')();
+// const expressWs = require('express-ws');
+// expressWs(eapp);
 
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -12,19 +12,36 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-const createWindow = () => {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 600,
-  });
+let mainWindow;
 
+function createWindow() {
+  // Create the browser window.
+  //Menu.setApplicationMenu(null)
+  mainWindow = new BrowserWindow({
+    width: 1020,
+    height: 850,
+    frame: true,
+    resizable: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      devTools: true,
+    }
+  });
+  mainWindow.show()
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, './index.html'));
-  // require("./menu")
-  //mainWindow.removeMenu()
+  mainWindow.loadURL(path.join(__dirname, './index.html'));
+
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
+
+  // Emitted when the window is closed.
+  mainWindow.on('closed', () => {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null;
+  });
 };
 
 
@@ -60,61 +77,48 @@ esrganPath = path.join(
   "realesrgan-ncnn-vulkan.exe"
 );
 
+ipcMain.on('openDevTools', (evt, msg) => {
+  mainWindow.webContents.openDevTools();
+})
 
+ipcMain.on('killESRGAN', (evt, data) => {
+  killProcess();
+})
 
-eapp.ws('/generate',function(ws,req){
-  console.log('Powered by Ar-Sr-Na Express');
+ipcMain.on('generate', (evt, data) => {
+  var { file, model } = data;
+  esrgan = spawn(esrganPath, [
+    '-i', file,
+    '-o', `${file}_optimization.png`,
+    '-n', model
+  ]);
 
-  ws.on('message', function (msg) {
-    //ws.send('default response')
-    var data = JSON.parse(msg);
-    if(data.kill){
-      killProcess();
-    }else{
-    console.log(data.file);
-    optimization(ws,data);
-    }
-  })
-
-function optimization(ws,data){
-  var file = data.file;
-  var model = data.model;
-  esrgan = spawn(esrganPath,[
-    '-i',file,
-    '-o',`${file}_optimization.png`,
-    '-n',model
-  ]); 
-  esrgan.stderr.on('data', function (data) { 
+  esrgan.stderr.on('data', function (data) {
     console.log(data.toString('utf8'));
-    var progressSet = parseInt(data)/100
-    if(typeof progressSet=='number') mainWindow.setProgressBar(progressSet)
-    ws.send(JSON.stringify({
-      type:'log',
-      data:data.toString('utf8')
-    }));
-    //return data;
-    }); 
-    esrgan.on('exit', function (code, signal) { 
-    mainWindow.setProgressBar(-1)
-    console.log('child process eixt ,exit:' + code); 
-    ws.send(JSON.stringify({
-      type:'exit',
-      code:'exit'+code
-    }));
-    return code
-    });
-  }
+    var progressSet = parseInt(data) / 100
+    if (typeof progressSet == 'number') mainWindow.setProgressBar(progressSet)
 
-    ws.on('close', function (code,signal) {
-      mainWindow.setProgressBar(-1)
-      console.log('close connection')
-      ws.send(JSON.stringify({
-        'force':true,
-        'exit':code
-      }))
-    })
+    mainWindow.webContents.send('generate', {
+      type: 'log',
+      data: data.toString('utf8')
+    });
+    //return data;
+  });
+
+  esrgan.on('exit', function (code, signal) {
+    mainWindow.setProgressBar(-1);
+    console.log('child process eixt ,exit:' + code);
+
+    mainWindow.webContents.send('generate', {
+      type: 'exit',
+      code: code
+    });
+  });
 
 })
+
+
+
 
 function killProcess() {
   esrgan.kill('SIGINT');
@@ -124,19 +128,33 @@ function killProcess() {
 }
 
 var exec = require('child_process').exec
-eapp.get('/openURL',(req,res)=>{
-	switch (process.platform) {
-		case "darwin":
-		  exec(`open ${req.query.url}`);
-		  break;
-		case "win32":
-			exec(`start ${req.query.url}`);
-		  break;
-		default:
-		  exec('xdg-open', [url]);
-	  }
-	res.send('success');
-  })
+ipcMain.on('openURL', (evt, msg) => {
+  switch (process.platform) {
+    case "darwin":
+      exec(`open ${req.query.url}`);
+      break;
+    case "win32":
+      exec(`start ${req.query.url}`);
+      break;
+    default:
+      exec('xdg-open', [url]);
+  }
+})
 
+ipcMain.on('enhancePath', (evt, msg) => {
+  dialog.showOpenDialog({
+    title: '选择保存文件夹', // 窗口标题
+    properties: ['openDirectory'] // 限制只能选择文件夹
+  }).then(result => {
+    if (!result.canceled && result.filePaths.length > 0) {
+      const filepath = result.filePaths[0];
+      console.log('enhance path：', filepath);
+      changeConfig('enhancePath', filepath)
+      mainWindow.webContents.send('enhancePath', filepath);
+    }
+  }).catch(err => {
+    console.error(err);
+  });
+})
 
-eapp.listen(3000)
+// eapp.listen(3000)
