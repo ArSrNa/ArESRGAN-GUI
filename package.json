@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "2.6.0",
+  "version": "3.0.0",
   "description": "Powered by Ar-Sr-Na",
   "main": "./src/index.js",
   "scripts": {
@@ -47,15 +47,15 @@
       "installerHeaderIcon": "./icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "ArESRGAN图像版"
+      "shortcutName": "ArUI ESRGAN 图像版"
     },
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"
     }
   },
   "keywords": [],
-  "author": "结城明日奈",
-  "license": "MIT",
+  "author": "Ar-Sr-Na",
+  "license": "GNU",
   "config": {
     "forge": {
       "packagerConfig": {},
@@ -85,12 +85,7 @@
   },
   "dependencies": {
     "ciam-node-sdk": "^1.1.1",
-    "electron-squirrel-startup": "^1.0.0",
-    "express": "^4.17.2",
-    "express-ws": "^5.0.2",
-    "node-cmd": "^5.0.0",
-    "socket.io": "^4.4.1",
-    "socket.io-client": "^4.4.1"
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
