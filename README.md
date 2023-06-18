@@ -46,28 +46,31 @@ npm run start
 
 ### 前后端通讯
 
-前端通过websocket消息，与后端实时交流，因后续开发联机功能的处理，故使用websocket通信而不是原生方式。
+前端通过ipc消息，ipcMain与ipcRender之间前后端实时交流
 
 前端方式如下
 
 ````js
-var ws = new WebSocket(`ws://localhost:${port}/esrgan`);
-ws.send('我永远喜欢菲谢尔')
-ws.onmessage=(msg)=>{
+import { ipcRenderer } from 'electron';
+ipcRenderer.send(channel,'我永远喜欢菲谢尔');
+
+ipcRenderer.on(channel,(evt,msg)=>{
     // 接收后端信息
-    // msg.data 即为后端消息
-}
+    // msg 即为后端消息
+})
 ````
 
 后端使用express与express-ws处理前端请求
 后端处理如下
 
 ````js
-app.ws('/esrgan',(ws,req)=>{
-    ws.on('message',(msg)=>{
-        //消息callback
-    })
+import { ipcMain } from 'electron';
+
+ipcMain.on(channel,(evt,msg)=>{
+    // msg为前端消息
 })
+
+mainWindow.webContents.send(channel,msg)
 ````
 
 ### Child_Process
@@ -87,7 +90,7 @@ esrgan = spawn(esrganPath,[
 简单地封装起来
 
 ````js
-function optimization(ws,data){
+function optimization(data){
   var file = data.file;
   var model = data.model;
   esrgan = spawn(esrganPath,[
@@ -95,23 +98,22 @@ function optimization(ws,data){
     '-o',`${file}_optimization.png`,
     '-n',model
   ]); 
-  esrgan.stderr.on('data', function (data) { 
+  esrgan.stderr.on('data', function (data) {
     console.log(data.toString('utf8'));
     var progressSet = parseInt(data)/100
     if(typeof progressSet=='number') mainWindow.setProgressBar(progressSet)
-    ws.send(JSON.stringify({
+    mainWindow.webContents.send('esrgan',{
       type:'log',
       data:data.toString('utf8')
-    }));
-    //return data;
+    });
     }); 
     esrgan.on('exit', function (code, signal) { 
     mainWindow.setProgressBar(-1)
     console.log('child process eixt ,exit:' + code); 
-    ws.send(JSON.stringify({
+    mainWindow.webContents.send('esrgan',{
       type:'exit',
       code:'exit'+code
-    }));
+    });
     return code
     });
   }
@@ -119,7 +121,7 @@ function optimization(ws,data){
 
 # 问题反馈
 
-您可以在这个页面的 issues 提交您的疑问，建议附上日志，控制台（Ctrl+Shift+I调出）截图
+您可以在这个页面的 issues 提交您的疑问，建议附上日志，控制台（Ctrl+Shift+I调出 或 点击页面上栏的调试控制台）截图
 
 或者到 https://support.qq.com/product/419220 进行业务层面的反馈
 
@@ -141,7 +143,6 @@ function optimization(ws,data){
 ![1675598956066](image/README/1675598956066.png)
 ![1675598960842](image/README/1675598960842.png)
 ![1675598968212](image/README/1675598968212.png)
-
 
 大家给了我灵感，减轻了我排查bug的负担，也因为此，我更有动力继续把应用产品做下去
 
