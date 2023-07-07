@@ -1,0 +1,608 @@
+/* Powered by Ar-Sr-Na */
+
+
+.arhome {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 15vh);
+}
+
+.carousel-item {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.hdpicEach {
+  justify-content: center, center;
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+  z-index: -100;
+  position: absolute;
+  filter: brightness(40%) blur(4px);
+}
+
+.carousel-inner {
+  margin-top: -60px;
+}
+
+.hdpicControl {
+  color: white;
+  background-color: #28a745;
+  border: unset;
+  width: 30px;
+  border-radius: 3px;
+}
+
+.hdpicText {
+  z-index: 10;
+  position: relative;
+  color: white;
+  padding-top: 15vh;
+  padding-left: 6vw;
+  padding-right: 6vw;
+}
+
+.hdpicCount {
+  animation-timing-function: linear;
+  animation-name: hdpicCount;
+  animation-duration: 7s;
+}
+
+@keyframes hdpicCount {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+.hdpicImg {
+  z-index: -100;
+  position: sticky;
+  top: 50px;
+  height: 100vh;
+  width: 100%;
+  object-fit: cover;
+  filter: blur(8px);
+  opacity: 0.333333;
+}
+
+.encyCard {
+  height: 120px;
+  z-index: -10;
+}
+
+.bgVideo {
+  z-index: -100;
+  position: sticky;
+  top: 50px;
+  filter: blur(8px);
+  opacity: 0.333333;
+  width: 100%;
+  object-fit: cover;
+}
+
+.SLA2020Vid {
+  z-index: -100;
+  position: sticky;
+  top: 50px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.sla2020bgVideo {
+  filter: blur(0px);
+  opacity: 1;
+  transition: all 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.sla2020bgVideoEnd {
+  filter: blur(5px);
+  opacity: 0.5;
+  transition: all 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.SLA2020Inner {
+  position: relative;
+  transform: translateY(-200%);
+  z-index: 10;
+}
+
+.headText {
+  overflow: hidden;
+}
+
+.headInnerText {
+  font-size: 1.3rem;
+  font-weight: 100;
+  animation-name: headTHc;
+  animation-duration: 0.5s;
+  animation-delay: 0.9s;
+  display: inline-block;
+  margin-bottom: 10px;
+  animation-fill-mode: both;
+  transition: transform 0.5s cubic-bezier(0.86, 0.29, 0.1, 0.66);
+}
+
+.headAnother {
+  animation-name: headHc;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  transition: all 0.6s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+  animation-delay: 0.7s;
+}
+
+@keyframes headTHc {
+  0% {
+    opacity: 0;
+    transform: translateY(30%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+}
+
+@keyframes headHc {
+  0% {
+    opacity: 0;
+    transform: translateY(30%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+}
+
+.delighter.textHCLeft {
+  animation-duration: 0.4s;
+  transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateY(30%);
+  opacity: 0;
+}
+
+.delighter.textHCLeft.started {
+  animation-duration: 0.4s;
+  transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateY(0%);
+  opacity: 1;
+}
+
+.lrcani {
+  animation-name: lrc;
+  animation-duration: 0.8s;
+  display: inline-block;
+  margin-bottom: 10px;
+  animation-fill-mode: both;
+  transition: all 1.5s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+}
+
+@keyframes lrc {
+  0% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateX(10%);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(0%);
+  }
+}
+
+.nav-blur {
+  backdrop-filter: saturate(180%) blur(10px);
+  background-color: rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  transition: all 0.5s;
+}
+
+.nav-blur:hover {
+  backdrop-filter: saturate(180%) blur(10px);
+  background-color: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+}
+
+.nav-blur-dark {
+  backdrop-filter: saturate(180%) blur(10px);
+  background-color: rgba(60, 60, 60, 0.6);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  transition: all 0.5s;
+}
+
+.nav-blur-dark:hover {
+  backdrop-filter: saturate(180%) blur(10px);
+  background-color: rgba(60, 60, 60, 0.8);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+}
+
+.headH1 {
+  background: linear-gradient(75deg,
+      rgba(255, 12, 204, 1) 0%,
+      rgb(0, 217, 255) 33.33%,
+      rgba(255, 255, 255, 0) 66.67%,
+      rgba(255, 255, 255, 0) 100%);
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation-name: colorTitle;
+  animation-duration: 5s;
+}
+
+.headDescription {
+  overflow: hidden;
+  background: linear-gradient(0.25turn, #00c3ff, #ffff1c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation-name: headHc;
+  animation-duration: 1s;
+  animation-delay: 0.5s;
+  animation-fill-mode: both;
+}
+
+@keyframes colorTitle {
+  0% {
+    background-position-x: 100%;
+  }
+
+  100% {
+    background-position-x: 0%;
+  }
+}
+
+.declaration {
+  min-height: 100vh;
+  background-color: black;
+  z-index: 10;
+}
+
+.declarationImg {
+  height: 100vh;
+  background-color: black;
+  background-image: url("https://www.arsrna.cn/joinus/images/declaration.png");
+  background-position: center center;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  position: sticky;
+  top: 0;
+  z-index: -1;
+}
+
+#declarationInner {
+  padding-top: 5%;
+}
+
+.description {
+  padding-top: 3%;
+  padding-left: 3%;
+}
+
+.sap {
+  font-size: 1.5rem;
+  font-weight: 100;
+  text-align: center;
+  position: sticky;
+  top: 60px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  color: white;
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+}
+
+.card-img-overlay {
+  overflow-y: scroll;
+}
+
+.card-bg-img {
+  filter: brightness(40%);
+  object-fit: cover;
+  justify-content: center;
+  height: 50vh;
+}
+
+
+.card-img-video {
+  filter: brightness(40%);
+  height: 60vh;
+  object-fit: cover;
+  justify-content: center;
+}
+
+.display-none {
+  display: none;
+}
+
+.arloading {
+  height: 5px;
+  width: 50px;
+  position: relative;
+  background-color: #0064FF;
+  animation-name: loading;
+  animation-timing-function: linear;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  overflow: hidden;
+}
+
+@keyframes loading {
+  0% {
+    left: -15%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+.ar-line {
+  overflow: hidden;
+  z-index: -10;
+}
+
+.bg {
+  box-shadow: 0px 0px 8px 2px #AAAAAA;
+}
+
+.arloading {
+  height: 5px;
+  width: 50px;
+  position: relative;
+  background-color: #0064FF;
+  animation-name: loading;
+  animation-timing-function: linear;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  overflow: hidden;
+}
+
+@keyframes loading {
+  0% {
+    left: -15%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+.ar-line {
+  overflow: hidden;
+  z-index: -10;
+}
+
+.bg {
+  box-shadow: 0px 0px 8px 2px #AAAAAA;
+}
+
+
+.header {
+  min-height: 100vh;
+  background-color: black;
+}
+
+.headIMG {
+  z-index: -100;
+  justify-content: center;
+  width: auto;
+}
+
+.img {
+  opacity: 0.5;
+  filter: blur(5px);
+  object-fit: cover;
+  position: absolute;
+  /*-webkit-filter: grayscale(100%);*/
+  top: 50px;
+  height: 100vh;
+  width: 100%;
+}
+
+.headerHTML {
+  overflow: hidden;
+  z-index: 10;
+}
+
+.declaration {
+  min-height: 100vh;
+  background-color: black;
+  z-index: 10;
+}
+
+.declarationImg {
+  height: 100vh;
+  background-color: black;
+  background-image: url("https://www.arsrna.cn/joinus/images/declaration.png");
+  background-position: center center;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  position: sticky;
+  top: 0;
+  z-index: -1;
+}
+
+#declarationInner {
+  padding-top: 5%;
+}
+
+@keyframes headTHc {
+  0% {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+}
+
+@keyframes headHc {
+  0% {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+}
+
+.delighter.textHCLeft {
+  animation-duration: 0.4s;
+  transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateY(30%);
+  opacity: 0;
+}
+
+.delighter.textHCLeft.started {
+  animation-duration: 0.4s;
+  transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  transform: translateY(0%);
+  opacity: 1;
+}
+
+
+.para {
+  padding-left: 3vh;
+  padding-right: 3vh;
+  font-size: auto;
+}
+
+.hdpic {
+  overflow: hidden;
+  object-fit: cover;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  filter: brightness(40%);
+  height: 60vh;
+  box-shadow: 0px 10px 10px 0px #888888;
+}
+
+
+.headDescription {
+  font-size: 2.5rem;
+  overflow: hidden;
+  transition: all 600ms cubic-bezier(0.86, 0, 0.07, 1);
+  background: linear-gradient(0.25turn, #ff00cc, #89fffd);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 200;
+}
+
+.headText {
+  z-index: 20;
+  position: relative;
+  padding-top: 10vh;
+  transition: all 600ms cubic-bezier(0.86, 0, 0.07, 1);
+  padding-left: 3vh;
+  padding-right: 3vh;
+}
+
+.img-50 {
+  width: 80px;
+  height: auto;
+}
+
+.ar-tit {
+  font-size: 5.5vw;
+  font-weight: 200;
+}
+
+.ar-dec {
+  font-size: 1.5rem;
+  font-weight: 200;
+}
+
+.d-card-img {
+  filter: blur(2px);
+  opacity: 0.5;
+  height: 250px;
+  object-fit: cover;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+}
+
+#cloudRender {
+  height: 700vh;
+  background-color: black;
+  position: relative;
+  top: 0;
+}
+
+.cloudRenderIMG {
+  object-fit: cover;
+  justify-content: center;
+  height: 99vh;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  padding-top: 70px;
+  filter: brightness(60%);
+}
+
+.CRDContainer {
+  position: sticky;
+  top: 200px;
+  padding-bottom: 50vh;
+  height: 500vh;
+}
+
+#workspace {
+  top: 70px;
+  position: absolute;
+  transition: clip-path 0.1s linear;
+}
+
+.cloudRenderIMG {
+  transition: clip-path 0.1s linear;
+}
+
+.bgBlur {
+  object-fit: cover;
+  height: 60vh;
+
+  animation-name: blurAni;
+  animation-duration: 4s;
+  animation-delay: 0.5s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  box-shadow: none;
+  box-sizing: 0;
+}
+
+.carousel-item {
+  min-height: 90vh;
+}
+
+@keyframes blurAni {
+  0% {
+    filter: blur(0px);
+  }
+
+  100% {
+    filter: blur(10px) brightness(0.5);
+  }
+}
+
+.alertSth {
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+}
+
+.img-30 {
+  width: 55px;
+  height: 100%;
+}
