@@ -11,7 +11,7 @@ export function ArLoadLine() {
 
 export function FileUpload({ files, setFiles }) {
     const fileInputField = useRef(null);
-    const [dragging, setDragging] = useState(true);
+    const [dragging, setDragging] = useState(false);
 
     const handleFileInputChange = (event) => {
         const fileList = event.target.files;
