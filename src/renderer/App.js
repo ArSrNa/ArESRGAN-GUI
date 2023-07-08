@@ -6,9 +6,12 @@ import './App.css';
 import Home from './Home';
 import Error from './error';
 import Copyright from './Copyright';
+
+
 const { Content, Footer } = Layout;
 console.log('Powered by Ar-Sr-Na');
 const { ipcRenderer } = window.electron;
+
 
 
 function Main() {
@@ -62,6 +65,17 @@ function Main() {
 }
 
 export default function App() {
+  console.log(`
+####    ##                    #         
+#        #                              
+###      #    #  #   ####    ##     ### 
+#        #    #  #   ##       #    #  # 
+#        #    ## #     ##     #    #  # 
+####    ###     ##   ####    ###    ####
+              #  #
+               ##
+`)
+  console.warn('我永远喜欢爱莉希雅！');
   return (
     <Router>
       <Main />
@@ -70,7 +84,7 @@ export default function App() {
 }
 
 function CheckUpdate() {
-  const count = 12;
+  const count = 13;
   fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
     .then(msg => msg.json())
     .then(msg => {
