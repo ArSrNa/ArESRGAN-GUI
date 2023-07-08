@@ -5,17 +5,16 @@ import {
 import { InboxOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
 import { FileUpload } from "./Components";
+const { ipcRenderer } = window.electron;
 const { Dragger } = Upload;
 const { Title, Paragraph } = Typography
 
 export default function Home() {
-    const [form] = Form.useForm();
-
     const [dataSource, setDataSource] = useState([]);
     const [files, setFiles] = useState([]);
+    const [start, setStart] = useState(false);
+    const [model, setModel] = useState('realesrgan-x4plus-anime');
     const fileLists = files ? Array.from(new Set(files.map(file => (file.path)))) : [];
-
-    // console.log(dataSource);
 
     useEffect(() => {
         const tabView = [];
@@ -29,7 +28,6 @@ export default function Home() {
         setDataSource(tabView);
         // console.log(fileLists, tabView);
     }, [files]);
-
 
     const changeColumn = {
         path(i, path) {
@@ -82,43 +80,39 @@ export default function Home() {
         log: 'exit0'
     }]
 
+    const handleStart = () => {
 
-    const submit = (f) => {
-        var filePaths = [];
-        f.inputFile.fileList.forEach(file => {
-            filePaths.push(file.originFileObj.path);
-        });
-        console.log(f);
     }
+
+    const handleStop = () => {
+        ipcRenderer.sendMessage('esrgan', { kill: true })
+    }
+
     return (
         <>
             <Space size='middle' direction="vertical">
                 <Card title="文件输入配置">
                     <Row gutter={16}>
-                        <Col span={8}>
+                        <Col span={10}>
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                                 <FileUpload files={files} setFiles={setFiles} />
-                                <Form form={form} onFinish={submit}>
-                                    <Form.Item name="model" label="模型" initialValue="realesrgan-x4plus-anime" rules={[{ required: true }]}>
-                                        <Select showSearch
-                                            placeholder="选择模型"
-                                            options={[{
-                                                label: 'realesrgan-x4plus-anime（针对动画图片）',
-                                                value: 'realesrgan-x4plus-anime'
-                                            }, {
-                                                label: 'realesrnet-x4plus（针对一般图片）',
-                                                value: 'realesrnet-x4plus'
-                                            }]}
-                                        />
-                                    </Form.Item>
-                                    {/* <Form.Item label="输出路径" name="outputPath">
-                                <Input placeholder="点击选择" />
-                            </Form.Item> */}
-                                </Form>
+                                <Select showSearch
+                                    style={{ width: '100%' }}
+                                    placeholder="选择模型"
+                                    value={model}
+                                    onChange={setModel}
+                                    options={[{
+                                        label: 'realesrgan-x4plus-anime（针对动画图片）',
+                                        value: 'realesrgan-x4plus-anime'
+                                    }, {
+                                        label: 'realesrnet-x4plus（针对一般图片）',
+                                        value: 'realesrnet-x4plus'
+                                    }]}
+                                />
                             </Space>
                         </Col>
 
-                        <Col span={16}>
+                        <Col span={14}>
                             <Alert
                                 message="软件缺陷"
                                 description={
@@ -132,7 +126,14 @@ export default function Home() {
                     </Row>
                 </Card>
 
-                <Card title="预览">
+                <Card title="预览"
+                    headStyle={{
+                        position: 'sticky', top: 60, zIndex: 10, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,.8)'
+                    }}
+                    extra={<Space size="small">
+                        <Button onClick={handleStart} type="primary" loading={start} disabled={fileLists.length == 0}>开始处理</Button>
+                        <Button onClick={handleStop} danger disabled={!start}>停止</Button>
+                    </Space>}>
                     <Table dataSource={dataSource}
                         columns={[{
                             title: '路径',
@@ -173,8 +174,9 @@ export default function Home() {
                             width: '10%',
                         }
                         ]} />
+
                 </Card>
-            </Space>
+            </Space >
         </>
     )
 }
