@@ -3,7 +3,7 @@ import './App.css'
 
 export default function Copyright({ show, setShow }) {
     return (<>
-        <Modal title="Basic Modal" open={show} onCancel={() => setShow(false)}
+        <Modal title="版权说明" open={show} onCancel={() => setShow(false)}
             okButtonProps={{ style: { display: 'none' } }} cancelButtonProps={{ style: { display: 'none' } }}
         >
             <Space direction="vertical" size="middle">
