@@ -1,6 +1,6 @@
 import { MemoryRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Layout, Menu, Watermark } from 'antd';
+import { Layout, Menu, notification } from 'antd';
 import { BugOutlined, CloudUploadOutlined, CodeFilled, CopyrightOutlined } from '@ant-design/icons'
 import './App.css';
 import Home from './Home';
@@ -14,6 +14,9 @@ const { ipcRenderer } = window.electron;
 function Main() {
   const navigate = useNavigate();
   const [copyrightShow, setCoyrightShow] = useState(false);
+  useEffect(() => {
+    CheckUpdate()
+  }, [])
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <div className='nav-blur'>
@@ -29,7 +32,7 @@ function Main() {
             key: 'bug',
             icon: <BugOutlined />
           }, {
-            label: '检查更新',
+            label: <a onClick={() => CheckUpdate()}>检查更新</a>,
             key: 'checkUpdate',
             icon: <CloudUploadOutlined />
           }, {
@@ -67,35 +70,30 @@ export default function App() {
 }
 
 function CheckUpdate() {
-  const count = 1
-  const [show, setShow] = useState(true);
-  const [info, setInfo] = useState({});
+  const count = 12;
+  fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
+    .then(msg => msg.json())
+    .then(msg => {
+      console.log(msg);
+      openNotification(msg)
+    });
 
-  useEffect(() => {
-    fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
-      .then(msg => msg.json())
-      .then(msg => {
-        console.log(msg);
-        setInfo(msg);
-        if (msg.count <= count) { setTimeout(() => setShow(false), 3000) }
-      });
-  }, [])
+  const openNotification = (uinfo) => {
+    const update = uinfo.count > count;
+    const { vNumber, uTime, content, link } = uinfo
+    notification.open({
+      message: update ? '有新版本' : '暂无更新',
+      description: update ?
+        <>发现更新：{uTime} {content} 请前往<a href={link} target='_blank'>此处</a>下载</> :
+        <>当前版本：{vNumber} {content}</>,
+      icon: (
+        <CloudUploadOutlined
+          style={{
+            color: '#108ee9',
+          }}
+        />
+      ),
+    })
+  };
 
-
-  return (
-    <ToastContainer position='top-end' style={{ padding: 30 }}>
-      <Toast show={show} onClose={() => setShow(false)}>
-        <Toast.Header>
-          <InfoCircle className='me-2' />
-          <strong className="me-auto">更新提醒</strong>
-          <small className='text-muted'>版本号 {info.vNumber}</small>
-        </Toast.Header>
-        <Toast.Body>{
-          info.count > count ?
-            (<>有新版本，请<a href={info.link} target='_blank'>点此前往下载</a></>)
-            : '当前已是最新版本'
-        }</Toast.Body>
-      </Toast>
-    </ToastContainer>
-  )
 }
