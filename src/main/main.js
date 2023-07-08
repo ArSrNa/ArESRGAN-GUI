@@ -180,4 +180,48 @@ ipcMain.on('saveFile', (e, m) => {
 
 ipcMain.on('openDevTools', (evt, msg) => {
   mainWindow.webContents.openDevTools();
+});
+
+ipcMain.on('esrgan', (evt, data) => {
+  var { file, model, command, kill } = data;
+
+  if (command) {
+    const esrgan = spawn(esrganPath, [
+      '-i', file,
+      '-o', `${file}_optimization.png`,
+      '-n', model
+    ]);
+
+    esrgan.stderr.on('data', function (data) {
+      console.log(data.toString('utf8'));
+      var progressSet = parseInt(data) / 100
+      if (typeof progressSet == 'number') mainWindow.setProgressBar(progressSet)
+
+      mainWindow.webContents.send('esrgan', {
+        type: 'log',
+        data: data.toString('utf8')
+      });
+      //return data;
+    });
+
+    esrgan.on('exit', function (code, signal) {
+      mainWindow.setProgressBar(-1);
+      console.log('child process eixt ,exit:' + code);
+
+      mainWindow.webContents.send('esrgan', {
+        type: 'exit',
+        code: code
+      });
+    });
+  }
+
+  if (kill) {
+    esrgan.kill('SIGINT');
+    console.log('killing');
+    mainWindow.setProgressBar(-1)
+  }
+
+
+
+
 })
