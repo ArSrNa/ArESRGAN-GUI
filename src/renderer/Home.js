@@ -25,12 +25,12 @@ export default function Home() {
             })
         });
         setDataSource(tabView);
-        // console.log(fileLists, tabView);
+        // console.log(fileLists);
     }, [files]);
 
     return (
         <>
-            <Space size='middle' direction="vertical">
+            <Space size='middle' direction="vertical" style={{ width: '100%' }}>
                 <Card title="文件输入配置">
                     <Row gutter={16}>
                         <Col span={10}>
@@ -66,7 +66,7 @@ export default function Home() {
                     </Row>
                 </Card>
 
-                <TView dataSource={dataSource} fileLists={fileLists} />
+                <TView dataSource={dataSource} setDataSource={setDataSource} fileLists={fileLists} model={model} />
 
             </Space >
         </>
@@ -74,9 +74,8 @@ export default function Home() {
 }
 
 function TView({
-    dataSource, fileLists
+    dataSource, fileLists, setDataSource, model
 }) {
-
     const [start, setStart] = useState(false);
     const changeColumn = {
         path(i, path) {
@@ -100,6 +99,13 @@ function TView({
                 return updatedDataSource;
             });
         },
+        progress(i, progress) {
+            setDataSource(prevDataSource => {
+                const updatedDataSource = [...prevDataSource];
+                updatedDataSource[i] = { ...updatedDataSource[i], progress };
+                return updatedDataSource;
+            });
+        },
         status(i, status) {
             setDataSource(prevDataSource => {
                 const updatedDataSource = [...prevDataSource];
@@ -110,10 +116,9 @@ function TView({
 
         delete(i) {
             const newData = dataSource.filter(arr => arr !== dataSource[i]);
-            setDataSource(newData)
+            setDataSource(newData);
         }
     }
-
 
     const mock = [{
         origin: 'A:/stable-diffusion-webui/outputs/txt2img-images/2023-07-08/00000-1613037609.png',
@@ -129,20 +134,50 @@ function TView({
         log: 'exit0'
     }]
 
-    const handleStart = () => {
-
-    }
-
     const handleStop = () => {
-        ipcRenderer.sendMessage('esrgan', { kill: true })
+        ipcRenderer.sendMessage('esrgan', { kill: true });
+        setStart(false);
     }
+
+    const startProcess = () => {
+        var count = 0;
+        setStart(true);
+        sendCommand(count);
+        ipcRenderer.on('esrganStdout', m => {
+            changeColumn.status(count, m.data);
+            changeColumn.progress(count, parseInt(m.data.replace('%', '')));
+            console.log(m);
+        })
+
+        ipcRenderer.on('esrganExit', m => {
+            changeColumn.status(count, '完成');
+            changeColumn.progress(count, 100);
+            changeColumn.process(count, `${dataSource[count].path}_optimization.png`);
+            count++
+            if (count >= dataSource.length) {
+                setStart(false);
+                return;
+            }
+            sendCommand(count);
+        })
+    }
+
+    const sendCommand = (i) => {
+        console.log(i);
+        ipcRenderer.sendMessage('esrgan', {
+            command: true,
+            path: dataSource[i].path,
+            model,
+        })
+    }
+
     return (
         <Card title="预览"
             headStyle={{
                 position: 'sticky', top: 60, zIndex: 10, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,.8)'
             }}
             extra={<Space size="small">
-                <Button onClick={handleStart} type="primary" loading={start} disabled={fileLists.length == 0}>开始处理</Button>
+                <Button onClick={startProcess} type="primary" loading={start} disabled={fileLists.length == 0}>开始处理</Button>
                 <Button onClick={handleStop} danger disabled={!start}>停止</Button>
             </Space>}>
             <Table dataSource={dataSource}
@@ -151,7 +186,6 @@ function TView({
                     key: 'path',
                     dataIndex: 'path',
                     width: '20%',
-                    ellipsis: true,
                     render: (n, { path }) => (<div style={{ wordBreak: 'break-word' }}>{path}</div>)
                 }, {
                     title: '原图',
@@ -167,9 +201,9 @@ function TView({
                     title: '状态',
                     key: 'status',
                     // dataIndex: 'status',
-                    render: (n, { progress, log }) => (<>
+                    render: (n, { status, progress }) => (<>
                         <Progress percent={progress} />
-                        {log}
+                        {status}
                     </>),
                     width: '20%',
                 }, {
@@ -178,7 +212,7 @@ function TView({
                     // dataIndex: 'status',
                     render: (n) => (<Popconfirm title="确认移除？" onConfirm={() => {
                         const newData = dataSource.filter(arr => arr !== n);
-                        setDataSource(newData)
+                        setDataSource(newData);
                     }}>
                         <a>移除</a>
                     </Popconfirm>),
