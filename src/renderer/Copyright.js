@@ -31,7 +31,8 @@ export default function Copyright({ show, setShow }) {
 
                 <div>
                     <Divider orientation="left">本软件</Divider>
-                    本软件作者：Ar-Sr-Na（<a href="https://www.arsrna.cn" target="_blank"></a>）拥有修改与二次创作该作品的权利，并受法律保护
+                    本软件作者：Ar-Sr-Na（<a href="https://www.arsrna.cn" target="_blank">www.arsrna.cn</a>）拥有修改与二次创作该作品的权利，并受法律保护；
+                    软件按照GNU GPL3.0协议进行开放源代码。
                 </div>
             </Space>
         </Modal>
