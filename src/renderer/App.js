@@ -89,7 +89,7 @@ function CheckUpdate() {
     .then(msg => msg.json())
     .then(msg => {
       console.log(msg);
-      openNotification(msg)
+      openNotification(msg);
     });
 
   const openNotification = (uinfo) => {

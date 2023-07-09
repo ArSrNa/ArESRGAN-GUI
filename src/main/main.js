@@ -56,6 +56,10 @@ const installExtensions = async () => {
     .catch(console.log);
 }
 
+const getAssetPath = (...paths) => {
+  return path.join(RESOURCES_PATH, ...paths);
+}
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -64,10 +68,6 @@ const createWindow = async () => {
   RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, "assets")
     : path.join(__dirname, "../../assets")
-
-  const getAssetPath = (...paths) => {
-    return path.join(RESOURCES_PATH, ...paths);
-  }
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -183,12 +183,12 @@ ipcMain.on('openDevTools', (evt, msg) => {
 });
 
 ipcMain.on('esrgan', (evt, data) => {
-  var { file, model, command, kill } = data;
-
+  var { path, model, command, kill } = data;
+  console.log(data)
   if (command) {
-    const esrgan = spawn(esrganPath, [
-      '-i', file,
-      '-o', `${file}_optimization.png`,
+    const esrgan = spawn(getAssetPath('./realsgan/realesrgan-ncnn-vulkan.exe'), [
+      '-i', path,
+      '-o', `${path}_optimization.png`,
       '-n', model
     ]);
 
@@ -197,7 +197,7 @@ ipcMain.on('esrgan', (evt, data) => {
       var progressSet = parseInt(data) / 100
       if (typeof progressSet == 'number') mainWindow.setProgressBar(progressSet)
 
-      mainWindow.webContents.send('esrgan', {
+      mainWindow.webContents.send('esrganStdout', {
         type: 'log',
         data: data.toString('utf8')
       });
@@ -208,7 +208,7 @@ ipcMain.on('esrgan', (evt, data) => {
       mainWindow.setProgressBar(-1);
       console.log('child process eixt ,exit:' + code);
 
-      mainWindow.webContents.send('esrgan', {
+      mainWindow.webContents.send('esrganExit', {
         type: 'exit',
         code: code
       });
