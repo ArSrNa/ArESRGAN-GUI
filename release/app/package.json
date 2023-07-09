@@ -1,0 +1,21 @@
+{
+  "name": "esrganui",
+  "productName": "ArSrNaESRGANUI",
+  "version": "4.0.0",
+  "description": "图像超分辨率软件",
+  "license": "GNU",
+  "author": {
+    "name": "ArSrNa",
+    "email": "root@arsrna.cn",
+    "url": "https://www.arsrna.cn"
+  },
+  "main": "./dist/main/main.js",
+  "scripts": {
+    "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
+    "postinstall": "npm run rebuild && npm run link-modules",
+    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+  },
+  "dependencies": {
+    "install": "^0.13.0"
+  }
+}
