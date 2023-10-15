@@ -182,11 +182,12 @@ ipcMain.on('openDevTools', (evt, msg) => {
   mainWindow.webContents.openDevTools();
 });
 
+let esrgan
 ipcMain.on('esrgan', (evt, data) => {
   var { path, model, command, kill } = data;
   console.log(data)
   if (command) {
-    const esrgan = spawn(getAssetPath('./realsgan/realesrgan-ncnn-vulkan.exe'), [
+    esrgan = spawn(getAssetPath('./realsgan/realesrgan-ncnn-vulkan.exe'), [
       '-i', path,
       '-o', `${path}_optimization.png`,
       '-n', model
@@ -224,4 +225,21 @@ ipcMain.on('esrgan', (evt, data) => {
 
 
 
+})
+
+
+ipcMain.on('getModels', (evt, msg) => {
+  try {
+    //扫描带有.param后缀的文件即为模型
+    const models = fs.readdirSync(path.join(getAssetPath('./realsgan'), './models'))
+      .filter(file => file.includes('.param'));
+    // console.log(files);
+    const files = models.map(n => ({
+      label: n.replace('.param', ''),
+      value: n.replace('.param', '')
+    }));
+    mainWindow.webContents.send('getModels', { success: true, data: files });
+  } catch (err) {
+    mainWindow.webContents.send('getModels', { success: false, data: err });
+  }
 })
