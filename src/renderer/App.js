@@ -6,7 +6,8 @@ import './App.css';
 import Home from './Home';
 import Error from './error';
 import Copyright from './Copyright';
-
+import { uuid } from './Components';
+import Aegis from 'aegis-web-sdk';
 
 const { Content, Footer } = Layout;
 console.log('Powered by Ar-Sr-Na');
@@ -76,6 +77,16 @@ export default function App() {
                ##
 `)
   console.warn('我永远喜欢爱莉希雅！');
+
+  const aegis = new Aegis({
+    id: 'W7oejTaL4r0ek1Yg67', // 上报 id
+    uin: `ESRGAN-Photo ${uuid()}`, // 用户唯一 ID（可选）
+    reportApiSpeed: true, // 接口测速
+    reportAssetSpeed: true, // 静态资源测速
+    spa: true, // spa 应用页面跳转的时候开启 pv 计算
+    hostUrl: 'https://rumt-zh.com'
+  });
+
   return (
     <Router>
       <Main />
@@ -84,7 +95,7 @@ export default function App() {
 }
 
 function CheckUpdate() {
-  const count = 13;
+  const count = 14;
   fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
     .then(msg => msg.json())
     .then(msg => {
@@ -97,9 +108,9 @@ function CheckUpdate() {
     const { vNumber, uTime, content, link } = uinfo
     notification.open({
       message: update ? '有新版本' : '暂无更新',
-      description: update ?
-        <>发现更新：{uTime} {content} 请前往<a href={link} target='_blank'>此处</a>下载</> :
-        <>当前版本：{vNumber} {content}</>,
+      description: update
+        ? <>发现更新：{uTime} <div dangerouslySetInnerHTML={{ __html: content }} /> 请前往<a href={link} target='_blank'>此处</a>下载</>
+        : <>当前版本：{vNumber} <div dangerouslySetInnerHTML={{ __html: content }} /></>,
       icon: (
         <CloudUploadOutlined
           style={{

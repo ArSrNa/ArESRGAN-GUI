@@ -1,18 +1,19 @@
 import {
     Card, Col, Row, Alert, Image, Upload, Form, Button, Select,
-    Table, Progress, Input, Typography, Divider, Space, Popconfirm
+    Table, Progress, Divider, Typography, message, Space, Popconfirm
 } from "antd";
-import { InboxOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
-import { FileUpload } from "./Components";
+import { FileUpload, uuid } from "./Components";
 const { ipcRenderer } = window.electron;
 const { Dragger } = Upload;
 const { Title, Paragraph } = Typography
 
 export default function Home() {
     const [dataSource, setDataSource] = useState([]);
-    const [files, setFiles] = useState([]);
     const [model, setModel] = useState('realesrgan-x4plus-anime');
+    const [files, setFiles] = useState([]);
+    const [modelList, setModelList] = useState([]);
     const fileLists = files ? Array.from(new Set(files.map(file => (file.path)))) : [];
 
     useEffect(() => {
@@ -28,6 +29,17 @@ export default function Home() {
         // console.log(fileLists);
     }, [files]);
 
+    useEffect(() => {
+        ipcRenderer.sendMessage('getModels');
+        ipcRenderer.on('getModels', e => {
+            if (!e.success) {
+                message.error(e.data);
+                return;
+            }
+            setModelList(e.data);
+        })
+    }, [])
+
     return (
         <>
             <Space size='middle' direction="vertical" style={{ width: '100%' }}>
@@ -37,17 +49,24 @@ export default function Home() {
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                                 <FileUpload files={files} setFiles={setFiles} />
                                 <Select showSearch
+                                    dropdownRender={(menu) => (
+                                        <>
+                                            {menu}
+                                            <Divider
+                                                style={{
+                                                    margin: '8px 0',
+                                                }}
+                                            />
+                                            <Button disabled type="text" icon={<PlusOutlined />}>
+                                                导入自定义模型（下版本开放）
+                                            </Button>
+                                        </>
+                                    )}
                                     style={{ width: '100%' }}
                                     placeholder="选择模型"
                                     value={model}
                                     onChange={setModel}
-                                    options={[{
-                                        label: 'realesrgan-x4plus-anime（针对动画图片）',
-                                        value: 'realesrgan-x4plus-anime'
-                                    }, {
-                                        label: 'realesrnet-x4plus（针对一般图片）',
-                                        value: 'realesrnet-x4plus'
-                                    }]}
+                                    options={modelList}
                                 />
                             </Space>
                         </Col>
@@ -66,7 +85,13 @@ export default function Home() {
                     </Row>
                 </Card>
 
-                <TView dataSource={dataSource} setDataSource={setDataSource} fileLists={fileLists} model={model} />
+                <TView
+                    dataSource={dataSource}
+                    setDataSource={setDataSource}
+                    fileLists={fileLists}
+                    model={model}
+                    files={files}
+                    setFiles={setFiles} />
 
             </Space >
         </>
@@ -74,7 +99,7 @@ export default function Home() {
 }
 
 function TView({
-    dataSource, fileLists, setDataSource, model
+    dataSource, fileLists, setDataSource, model, files, setFiles
 }) {
     const [start, setStart] = useState(false);
     const changeColumn = {
@@ -146,6 +171,7 @@ function TView({
         ipcRenderer.on('esrganStdout', m => {
             changeColumn.status(count, m.data);
             changeColumn.progress(count, parseInt(m.data.replace('%', '')));
+            setStart(true);
             console.log(m);
         })
 
@@ -210,12 +236,21 @@ function TView({
                     title: '操作',
                     key: 'status',
                     // dataIndex: 'status',
-                    render: (n) => (<Popconfirm title="确认移除？" onConfirm={() => {
-                        const newData = dataSource.filter(arr => arr !== n);
-                        setDataSource(newData);
-                    }}>
-                        <a>移除</a>
-                    </Popconfirm>),
+                    render: (n, key, e) => {
+                        // console.log(e)
+                        return (<Popconfirm key={uuid()} title="确认移除？" onConfirm={() => {
+                            setDataSource(prev => {
+                                const newData = prev.filter(arr => arr !== n);
+                                return (newData);
+                            });
+                            setFiles(prev => {
+                                const newData = prev.filter(arr => arr !== prev[e]);
+                                return (newData)
+                            })
+                        }}>
+                            <a>移除</a>
+                        </Popconfirm>)
+                    },
                     width: '10%',
                 }
                 ]} />
