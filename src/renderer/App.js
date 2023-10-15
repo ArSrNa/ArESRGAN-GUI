@@ -96,7 +96,7 @@ export default function App() {
 
 function CheckUpdate() {
   const count = 14;
-  fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
+  fetch('https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN')
     .then(msg => msg.json())
     .then(msg => {
       console.log(msg);
