@@ -1,8 +1,8 @@
 import {
     Card, Col, Row, Alert, Image, Upload, Form, Button, Select,
-    Table, Progress, Input, Typography, Divider, Space, Popconfirm
+    Table, Progress, Divider, Typography, message, Space, Popconfirm, Input, Checkbox, Radio
 } from "antd";
-import { InboxOutlined } from '@ant-design/icons';
+import { PlusOutlined, InboxOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
 import { FileUpload } from "./Components";
 const { ipcRenderer } = window.electron;
@@ -11,16 +11,20 @@ const { Title, Paragraph } = Typography
 
 export default function Home() {
     const [dataSource, setDataSource] = useState([]);
+    const [form] = Form.useForm();
+    const [isCurrent, setIsCurrent] = useState('current');
+    const [model, setModel] = useState('');
     const [files, setFiles] = useState([]);
-    const [model, setModel] = useState('realesrgan-x4plus-anime');
-    const fileLists = files ? Array.from(new Set(files.map(file => (file.path)))) : [];
-
+    const [modelList, setModelList] = useState([]);
+    // const fileLists = files ? Array.from(new Set(files.map(file => (file.path)))) : [];
     useEffect(() => {
         const tabView = [];
-        fileLists.forEach(file => {
+        files.forEach(fileObj => {
+            // console.log(file);
+            const file = fileObj.originFileObj
             tabView.push({
-                origin: file,
-                path: file,
+                origin: file.path,
+                path: file.path,
                 progress: 0,
             })
         });
@@ -28,28 +32,94 @@ export default function Home() {
         // console.log(fileLists);
     }, [files]);
 
+    const handleSetPath = () => {
+        form.setFieldValue('customPath', {
+            path: '我永远喜欢爱莉希雅',
+            type: isCurrent
+        });
+    }
+
+    useEffect(() => {
+        ipcRenderer.sendMessage('getModels');
+        ipcRenderer.on('getModels', e => {
+            if (!e.success) {
+                message.error(e.data);
+                return;
+            }
+            setModelList(e.data);
+        })
+    }, [])
+
     return (
         <>
             <Space size='middle' direction="vertical" style={{ width: '100%' }}>
                 <Card title="文件输入配置">
                     <Row gutter={16}>
                         <Col span={10}>
-                            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                                <FileUpload files={files} setFiles={setFiles} />
-                                <Select showSearch
-                                    style={{ width: '100%' }}
-                                    placeholder="选择模型"
-                                    value={model}
-                                    onChange={setModel}
-                                    options={[{
-                                        label: 'realesrgan-x4plus-anime（针对动画图片）',
-                                        value: 'realesrgan-x4plus-anime'
-                                    }, {
-                                        label: 'realesrnet-x4plus（针对一般图片）',
-                                        value: 'realesrnet-x4plus'
-                                    }]}
-                                />
-                            </Space>
+                            <Form
+                                form={form}
+                                onFinish={console.log}
+                                initialValues={{
+                                    model: 'realesrgan-x4plus-anime',
+                                    customPath: {
+                                        type: 'current'
+                                    }
+                                }}
+                                layout="vertical">
+                                <Form.Item label="文件">
+                                    <Dragger
+                                        onChange={(e) => setFiles(e.fileList)}
+                                        customRequest={console.log}
+                                        showUploadList={false}
+                                        multiple accept="image/*">
+                                        <p className="ant-upload-drag-icon">
+                                            <InboxOutlined />
+                                        </p>
+                                        <p className="ant-upload-text">点击此处或拖入文件以上传</p>
+                                    </Dragger>
+                                </Form.Item>
+                                <Form.Item name="model" label="模型">
+                                    <Select showSearch
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider
+                                                    style={{
+                                                        margin: '8px 0',
+                                                    }}
+                                                />
+                                                <Button disabled type="text" icon={<PlusOutlined />}>
+                                                    导入自定义模型（下版本开放）
+                                                </Button>
+                                            </>
+                                        )}
+                                        style={{ width: '100%' }}
+                                        placeholder="选择模型"
+                                        options={modelList}
+                                    />
+                                </Form.Item>
+
+                                <Form.Item label="输出路径" >
+                                    <Space.Compact style={{ width: '100%' }}>
+                                        <Form.Item noStyle name={["customPath", "type"]}>
+                                            <Select style={{ width: 150 }} onChange={setIsCurrent}>
+                                                <Option value="custom">自定义路径</Option>
+                                                <Option value="current">当前路径</Option>
+                                            </Select>
+                                        </Form.Item>
+                                        <Form.Item noStyle name={["customPath", "path"]}>
+                                            <Input
+                                                onClick={() => {
+                                                    if (isCurrent === 'custom') {
+                                                        handleSetPath();
+                                                    }
+                                                }}
+                                                readOnly
+                                                placeholder={isCurrent === 'custom' ? '单击进行更改' : ''} />
+                                        </Form.Item>
+                                    </Space.Compact>
+                                </Form.Item>
+                            </Form>
                         </Col>
 
                         <Col span={14}>
@@ -66,7 +136,13 @@ export default function Home() {
                     </Row>
                 </Card>
 
-                <TView dataSource={dataSource} setDataSource={setDataSource} fileLists={fileLists} model={model} />
+                <TView
+                    dataSource={dataSource}
+                    setDataSource={setDataSource}
+                    fileLists={files}
+                    model={model}
+                    files={files}
+                    setFiles={setFiles} />
 
             </Space >
         </>
