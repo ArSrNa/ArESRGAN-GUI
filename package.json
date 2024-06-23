@@ -13,11 +13,11 @@
   ],
   "license": "GNU",
   "author": {
-    "name": "ArSrNaRenderInfinity",
+    "name": "上海绫中信息技术有限公司",
     "email": "root@arsrna.cn",
     "url": "https://www.arsrna.cn"
   },
-  "main": "./src/main/main.js",
+  "main": "./src/main/main.ts",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
@@ -89,6 +89,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.2",
+    "recoil": "^0.7.7",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
