@@ -6,25 +6,13 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import {
-  app,
-  BrowserWindow,
-  shell,
-  ipcMain,
-  dialog,
-  Menu,
-  webContents,
-} from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from 'electron';
 import { resolveHtmlPath } from './util';
 import fs from 'fs';
 import path from 'path';
-import {
-  ChildProcess,
-  ChildProcessWithoutNullStreams,
-  spawn,
-} from 'child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import crypto from 'crypto';
 let RESOURCES_PATH;
-
 let mainWindow = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
@@ -140,6 +128,31 @@ app
     });
   })
   .catch(console.log);
+
+async function exeGetHash(filePath: string) {
+  return new Promise((resolve, reject) => {
+    const hash = spawn(getAssetPath('./certutil/certutil.exe'), [
+      '-hashfile',
+      filePath,
+      'sha256',
+    ]);
+    hash.stdout.on('data', (msg) => {
+      if (msg.toString('utf-8').split('\r\n')[1] !== void 0) {
+        resolve(msg.toString('utf-8').split('\r\n')[1]);
+      }
+    });
+    hash.stderr.on('data', (msg) => reject(msg.toString('utf-8')));
+  });
+}
+
+ipcMain.handle('getAsarHash', async () => {
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+  let hash = await exeGetHash(path.join(process.resourcesPath, './app.asar'));
+  console.log('hash', hash);
+  return hash;
+});
 
 ipcMain.handle('env', () => {
   mainWindow.webContents.send('env', app.isPackaged);
