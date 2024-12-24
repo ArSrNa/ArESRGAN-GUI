@@ -9,7 +9,8 @@
     "sass",
     "webpack",
     "hot",
-    "reload"
+    "reload",
+    "ESRGAN"
   ],
   "license": "GNU",
   "author": {
