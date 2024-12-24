@@ -141,7 +141,7 @@ app
   })
   .catch(console.log);
 
-ipcMain.on('env', () => {
+ipcMain.handle('env', () => {
   mainWindow.webContents.send('env', app.isPackaged);
 });
 
@@ -164,47 +164,72 @@ ipcMain.on('openDevTools', (evt, msg) => {
   mainWindow.webContents.openDevTools();
 });
 
-ipcMain.on('esrgan', (evt, data) => {
-  var { path, model, command, kill } = data;
-  console.log(data);
-  let esrgan: ChildProcessWithoutNullStreams;
-  if (command) {
-    esrgan = spawn(getAssetPath('./realsgan/realesrgan-ncnn-vulkan.exe'), [
-      '-i',
-      path,
-      '-o',
-      `${path}_optimization.png`,
-      '-n',
-      model,
-    ]);
+let esrgan: ChildProcessWithoutNullStreams;
+ipcMain.handle('esrgan', (evt, data) => {
+  return new Promise((resolve, reject) => {
+    var { path, model, type, count } = data;
+    console.log(data);
+    switch (type) {
+      case 'command':
+        {
+          esrgan = spawn(
+            getAssetPath('./realsgan/realesrgan-ncnn-vulkan.exe'),
+            ['-i', path, '-o', `${path}_optimization.png`, '-n', model]
+          );
 
-    esrgan.stderr.on('data', function (data) {
-      console.log(data.toString('utf8'));
-      var progressSet = parseInt(data) / 100;
-      if (typeof progressSet == 'number')
-        mainWindow.setProgressBar(progressSet);
+          esrgan.stderr.on('data', function (data) {
+            console.log(data.toString('utf8'));
+            var progressSet = parseInt(data) / 100;
+            if (typeof progressSet == 'number')
+              mainWindow.setProgressBar(progressSet);
 
-      mainWindow.webContents.send('esrganStdout', {
-        type: 'log',
-        data: data.toString('utf8'),
-      });
-      //return data;
-    });
+            mainWindow.webContents.send('esrganStdout', {
+              type: 'log',
+              data: data.toString('utf8'),
+              count,
+            });
+            //return data;
+          });
 
-    esrgan.on('exit', function (code, signal) {
-      mainWindow.setProgressBar(-1);
-      console.log('child process eixt ,exit:' + code);
+          esrgan.on('exit', function (code, signal) {
+            mainWindow.setProgressBar(-1);
+            console.log('child process eixt ,exit:' + code);
+            resolve({
+              type: 'exit',
+              code: code,
+            });
+          });
+        }
+        break;
 
-      mainWindow.webContents.send('esrganExit', {
-        type: 'exit',
-        code: code,
-      });
-    });
-  }
+      case 'kill':
+        {
+          esrgan.kill('SIGINT');
+          console.log('killing');
+          mainWindow.setProgressBar(-1);
+          resolve({
+            type: 'exit',
+            code: -1,
+          });
+        }
+        break;
+    }
+  });
+});
 
-  if (kill) {
-    esrgan.kill('SIGINT');
-    console.log('killing');
-    mainWindow.setProgressBar(-1);
+ipcMain.handle('getModels', async (evt, msg) => {
+  try {
+    //扫描带有.param后缀且有.bin的文件即为模型
+    const models = fs
+      .readdirSync(path.join(getAssetPath('./realsgan'), './models'))
+      .filter((file) => file.includes('.param'));
+    console.log(models);
+    const files = models.map((n) => ({
+      label: n.replace('.param', ''),
+      value: n.replace('.param', ''),
+    }));
+    return { success: true, data: files };
+  } catch (err) {
+    return { success: false, data: err };
   }
 });
