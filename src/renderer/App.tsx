@@ -146,7 +146,7 @@ async function CheckUpdate() {
   const hash = await ipcRenderer.invoke('getAsarHash');
   console.log('asar hash; not available in dev', hash);
   let msg = await fetch(
-    'https://api.arsrna.cn/release/appUpdate/ArESRGAN'
+    'https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN'
   ).then((msg) => msg.json());
   console.log(msg);
   openNotification(msg);
