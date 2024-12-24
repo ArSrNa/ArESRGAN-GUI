@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Divider, Layout, Menu, notification } from 'antd';
+import { Divider, Layout, Menu, Modal, notification } from 'antd';
 import {
   BugOutlined,
   CloudUploadOutlined,
@@ -30,6 +30,7 @@ const { ipcRenderer } = window.electron;
 function Main() {
   const navigate = useNavigate();
   const [copyrightShow, setCoyrightShow] = useState(false);
+
   useEffect(() => {
     CheckUpdate();
   }, []);
@@ -97,7 +98,7 @@ function Main() {
               ],
             },
           ]}
-        ></Menu>
+        />
       </div>
       <Content style={{ padding: '80px 20px 0px 20px' }}>
         <Routes>
@@ -141,21 +142,21 @@ export default function App() {
   );
 }
 
-function CheckUpdate() {
-  const count = 14;
-  fetch('https://api.arsrna.cn/release/appUpdate/ArESRGAN')
-    .then((msg) => msg.json())
-    .then((msg) => {
-      console.log(msg);
-      openNotification(msg);
-    });
+async function CheckUpdate() {
+  const hash = await ipcRenderer.invoke('getAsarHash');
+  console.log('asar hash; not available in dev', hash);
+  let msg = await fetch(
+    'https://api.arsrna.cn/release/appUpdate/ArESRGAN'
+  ).then((msg) => msg.json());
+  console.log(msg);
+  openNotification(msg);
 
-  const openNotification = (uinfo) => {
-    const update = uinfo.count > count;
+  function openNotification(uinfo) {
+    const needUpdate = uinfo.hash !== hash;
     const { vNumber, uTime, content, link } = uinfo;
     notification.open({
-      message: update ? '有新版本' : '暂无更新',
-      description: update ? (
+      message: needUpdate ? '有新版本' : '暂无更新',
+      description: needUpdate ? (
         <>
           发现更新：{uTime} {content} 请前往
           <a href={link} target="_blank">
@@ -176,5 +177,5 @@ function CheckUpdate() {
         />
       ),
     });
-  };
+  }
 }
