@@ -6,18 +6,22 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Layout, Menu, notification } from 'antd';
+import { Divider, Layout, Menu, notification } from 'antd';
 import {
   BugOutlined,
   CloudUploadOutlined,
   CodeFilled,
   CopyrightOutlined,
+  EllipsisOutlined,
+  HomeOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
-import './App.css';
+import './App.scss';
 import Home from './Home';
 import Error from './error';
 import Copyright from './Copyright';
 import { RecoilRoot } from 'recoil';
+import FAQ from './faq';
 
 const { Content, Footer } = Layout;
 console.log('Powered by Ar-Sr-Na');
@@ -45,35 +49,52 @@ function Main() {
           style={{ marginLeft: 30, background: 'rgba(0,0,0,0)' }}
           items={[
             {
-              label: <a onClick={() => setCoyrightShow(true)}>版权说明</a>,
-              key: 'copyright',
-              icon: <CopyrightOutlined />,
+              key: '/',
+              label: <Link to="/">首页</Link>,
+              icon: <HomeOutlined />,
             },
             {
-              label: (
-                <a
-                  href="https://support.qq.com/products/419220"
-                  target="_blank"
-                >
-                  问题反馈
-                </a>
-              ),
-              key: 'bug',
-              icon: <BugOutlined />,
+              key: '/faq',
+              label: <Link to="/faq">常见问题</Link>,
+              icon: <QuestionCircleOutlined />,
             },
             {
-              label: <a onClick={() => CheckUpdate()}>检查更新</a>,
-              key: 'checkUpdate',
-              icon: <CloudUploadOutlined />,
-            },
-            {
-              label: (
-                <a onClick={() => ipcRenderer.sendMessage('openDevTools')}>
-                  调试控制台
-                </a>
-              ),
-              key: 'console',
-              icon: <CodeFilled />,
+              label: '更多',
+              key: 'more',
+              icon: <EllipsisOutlined />,
+              children: [
+                {
+                  label: <a onClick={() => setCoyrightShow(true)}>版权说明</a>,
+                  key: 'more',
+                  icon: <CopyrightOutlined />,
+                },
+                {
+                  label: (
+                    <a onClick={() => ipcRenderer.sendMessage('openDevTools')}>
+                      调试控制台
+                    </a>
+                  ),
+                  key: 'console',
+                  icon: <CodeFilled />,
+                },
+                {
+                  label: (
+                    <a
+                      href="https://support.qq.com/products/419220"
+                      target="_blank"
+                    >
+                      问题反馈
+                    </a>
+                  ),
+                  key: 'bug',
+                  icon: <BugOutlined />,
+                },
+                {
+                  label: <a onClick={() => CheckUpdate()}>检查更新</a>,
+                  key: 'checkUpdate',
+                  icon: <CloudUploadOutlined />,
+                },
+              ],
             },
           ]}
         ></Menu>
@@ -81,6 +102,7 @@ function Main() {
       <Content style={{ padding: '80px 20px 0px 20px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/faq" element={<FAQ />} />
           {/* <Route path='/start' element={<Start />} /> */}
           <Route path="*" element={<Error />} />
         </Routes>
@@ -88,7 +110,11 @@ function Main() {
         <Copyright show={copyrightShow} setShow={setCoyrightShow} />
       </Content>
       <Footer style={{ textAlign: 'center' }}>
-        <p>Powered by Ar-Sr-Na</p>
+        Powered by Ar-Sr-Na
+        <Divider type="vertical" />
+        上海绫中信息技术有限公司
+        <Divider type="vertical" />
+        源代码禁止用于商业用途！
       </Footer>
     </Layout>
   );

@@ -10,57 +10,56 @@ import {
   Select,
   Table,
   Progress,
-  Divider,
-  Typography,
   message,
   Space,
   Popconfirm,
-  Input,
-  Checkbox,
-  Radio,
 } from 'antd';
-import { PlusOutlined, InboxOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
-import { FileUpload } from './Components';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { DataSourceState } from './states';
+import { DataSourceState, filesState } from './states';
+import { DataSourceType } from './types';
+import './App.scss';
 const { ipcRenderer } = window.electron;
 const { Dragger } = Upload;
-const { Title, Paragraph } = Typography;
 
 export default function Home() {
   const setDataSource = useSetRecoilState(DataSourceState);
   const [form] = Form.useForm();
-  const [isCurrent, setIsCurrent] = useState('current');
-  const [model, setModel] = useState('');
-  const [files, setFiles] = useState([]);
+  /**存储模式，当前目录或自定义目录 */
+  // const [isCurrent, setIsCurrent] = useState('current');
+  const [model, setModel] = useState('realesrgan-x4plus-anime');
+  const [files, setFiles] = useRecoilState(filesState);
   const [modelList, setModelList] = useState([]);
-  // const fileLists = files ? Array.from(new Set(files.map(file => (file.path)))) : [];
+
   useEffect(() => {
-    const tabView = [];
-    files.forEach((fileObj) => {
-      // console.log(file);
+    /**文件上传后，将文件信息转换为DataSourceType */
+    let res = files.map((fileObj) => {
       const file = fileObj.originFileObj;
-      tabView.push({
+      return {
+        id: file.uid,
         origin: file.path,
         path: file.path,
         progress: 0,
-      });
+        status: '等待处理',
+      };
     });
-    setDataSource(tabView);
-    // console.log(fileLists);
+    setDataSource(res);
   }, [files]);
 
-  const handleSetPath = () => {
-    form.setFieldValue('customPath', {
-      path: '我永远喜欢爱莉希雅',
-      type: isCurrent,
-    });
-  };
+  /**
+   * @description 设置输出路径
+   */
+  // const handleSetPath = () => {
+  //   form.setFieldValue('customPath', {
+  //     path: '我永远喜欢爱莉希雅',
+  //     type: isCurrent,
+  //   });
+  // };
 
   useEffect(() => {
-    ipcRenderer.sendMessage('getModels');
-    ipcRenderer.on('getModels', (e) => {
+    /**获取模型列表 */
+    ipcRenderer.invoke('getModels').then((e) => {
       if (!e.success) {
         message.error(e.data);
         return;
@@ -74,7 +73,7 @@ export default function Home() {
       <Space size="middle" direction="vertical" style={{ width: '100%' }}>
         <Card title="文件输入配置">
           <Row gutter={16}>
-            <Col span={10}>
+            <Col span={12}>
               <Form
                 form={form}
                 onFinish={console.log}
@@ -89,40 +88,30 @@ export default function Home() {
                 <Form.Item label="文件">
                   <Dragger
                     onChange={(e) => setFiles(e.fileList)}
-                    customRequest={console.log}
+                    fileList={files}
+                    customRequest={() => {}}
                     showUploadList={false}
                     multiple
                     accept="image/*"
                   >
                     <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
+                      <PlusOutlined />
                     </p>
                     <p className="ant-upload-text">点击此处或拖入文件以上传</p>
                   </Dragger>
                 </Form.Item>
-                <Form.Item name="model" label="模型">
+                <Form.Item name="model" label="选择模型">
                   <Select
                     showSearch
-                    dropdownRender={(menu) => (
-                      <>
-                        {menu}
-                        <Divider
-                          style={{
-                            margin: '8px 0',
-                          }}
-                        />
-                        <Button disabled type="text" icon={<PlusOutlined />}>
-                          导入自定义模型（下版本开放）
-                        </Button>
-                      </>
-                    )}
                     style={{ width: '100%' }}
                     placeholder="选择模型"
                     options={modelList}
+                    onChange={(e) => setModel(e)}
                   />
                 </Form.Item>
 
-                <Form.Item label="输出路径">
+                {/* 功能尚未完成，请勿启用 */}
+                {/* <Form.Item label="输出路径">
                   <Space.Compact style={{ width: '100%' }}>
                     <Form.Item noStyle name={['customPath', 'type']}>
                       <Select style={{ width: 150 }} onChange={setIsCurrent}>
@@ -144,11 +133,11 @@ export default function Home() {
                       />
                     </Form.Item>
                   </Space.Compact>
-                </Form.Item>
+                </Form.Item> */}
               </Form>
             </Col>
 
-            <Col span={14}>
+            <Col span={12}>
               <Alert
                 message="软件缺陷"
                 description={
@@ -162,7 +151,7 @@ export default function Home() {
                     </a>
                     或兔小巢（软件顶栏反馈处）上提交您的建议！
                     <br />
-                    还有，希望大家能在github上多多点下star!!!
+                    希望大家可以在github上多多点下star支持一下！
                   </>
                 }
                 type="info"
@@ -172,112 +161,102 @@ export default function Home() {
           </Row>
         </Card>
 
-        <TView fileLists={files} model={model} />
+        <TView model={model} />
       </Space>
     </>
   );
 }
 
-function TView({ fileLists, model }) {
+function TView({ model }) {
+  const [files, setFiles] = useRecoilState(filesState);
   const [start, setStart] = useState(false);
   const [dataSource, setDataSource] = useRecoilState(DataSourceState);
-  const changeColumn = {
-    path(i, path) {
-      setDataSource((prevDataSource) => {
-        const updatedDataSource = [...prevDataSource];
-        updatedDataSource[i] = { ...updatedDataSource[i], path };
-        return updatedDataSource;
-      });
-    },
-    origin(i, origin) {
-      setDataSource((prevDataSource) => {
-        const updatedDataSource = [...prevDataSource];
-        updatedDataSource[i] = { ...updatedDataSource[i], origin };
-        return updatedDataSource;
-      });
-    },
-    process(i, process) {
-      setDataSource((prevDataSource) => {
-        const updatedDataSource = [...prevDataSource];
-        updatedDataSource[i] = { ...updatedDataSource[i], process };
-        return updatedDataSource;
-      });
-    },
-    progress(i, progress) {
-      setDataSource((prevDataSource) => {
-        const updatedDataSource = [...prevDataSource];
-        updatedDataSource[i] = { ...updatedDataSource[i], progress };
-        return updatedDataSource;
-      });
-    },
-    status(i, status) {
-      setDataSource((prevDataSource) => {
-        const updatedDataSource = [...prevDataSource];
-        updatedDataSource[i] = { ...updatedDataSource[i], status };
-        return updatedDataSource;
-      });
-    },
 
-    delete(i) {
-      const newData = dataSource.filter((arr) => arr !== dataSource[i]);
-      setDataSource(newData);
-    },
-  };
+  function changeColumn(i: number, key: keyof DataSourceType, value: any) {
+    setDataSource((prevDataSource) => {
+      const updatedDataSource = [...prevDataSource];
+      updatedDataSource[i] = { ...updatedDataSource[i], [key]: value };
+      return updatedDataSource;
+    });
+  }
+  //   path(i, path) {
+  //     setDataSource((prevDataSource) => {
+  //       const updatedDataSource = [...prevDataSource];
+  //       updatedDataSource[i] = { ...updatedDataSource[i], path };
+  //       return updatedDataSource;
+  //     });
+  //   },
+  //   origin(i, origin) {
+  //     setDataSource((prevDataSource) => {
+  //       const updatedDataSource = [...prevDataSource];
+  //       updatedDataSource[i] = { ...updatedDataSource[i], origin };
+  //       return updatedDataSource;
+  //     });
+  //   },
+  //   process(i, process) {
+  //     setDataSource((prevDataSource) => {
+  //       const updatedDataSource = [...prevDataSource];
+  //       updatedDataSource[i] = { ...updatedDataSource[i], process };
+  //       return updatedDataSource;
+  //     });
+  //   },
+  //   progress(i, progress) {
+  //     setDataSource((prevDataSource) => {
+  //       const updatedDataSource = [...prevDataSource];
+  //       updatedDataSource[i] = { ...updatedDataSource[i], progress };
+  //       return updatedDataSource;
+  //     });
+  //   },
+  //   status(i, status) {
+  //     setDataSource((prevDataSource) => {
+  //       const updatedDataSource = [...prevDataSource];
+  //       updatedDataSource[i] = { ...updatedDataSource[i], status };
+  //       return updatedDataSource;
+  //     });
+  //   },
 
-  const mock = [
-    {
-      origin:
-        'A:/stable-diffusion-webui/outputs/txt2img-images/2023-07-08/00000-1613037609.png',
-      process: '',
-      path: 'D:/xxx/xxx/xxx',
-      progress: parseInt('100%'.replace('%', '')),
-      log: 'exit0',
-    },
-    {
-      origin:
-        'A:/stable-diffusion-webui/outputs/txt2img-images/2023-07-08/00001-2967784565.png',
-      process: '',
-      path: 'D:/xxx/xxx/xxx',
-      progress: parseInt('100%'.replace('%', '')),
-      log: 'exit0',
-    },
-  ];
+  //   delete(i) {
+  //     const newData = dataSource.filter((arr) => arr !== dataSource[i]);
+  //     setDataSource(newData);
+  //   },
+  // };
 
-  const handleStop = () => {
-    ipcRenderer.sendMessage('esrgan', { kill: true });
+  const handleStop = async () => {
+    await ipcRenderer.invoke('esrgan', { type: 'kill' });
     setStart(false);
   };
 
-  const startProcess = () => {
-    var count = 0;
-    setStart(true);
-    sendCommand(count);
-    ipcRenderer.on('esrganStdout', (m) => {
-      changeColumn.status(count, m.data);
-      changeColumn.progress(count, parseInt(m.data.replace('%', '')));
-      console.log(m);
-    });
+  /**处理超分辨率（批量） */
+  const startProcess = async () => {
+    for (let count = 0; count < dataSource.length; count++) {
+      setStart(true);
+      console.log(count, '开始处理');
 
-    ipcRenderer.on('esrganExit', (m) => {
-      changeColumn.status(count, '完成');
-      changeColumn.progress(count, 100);
-      changeColumn.process(count, `${dataSource[count].path}_optimization.png`);
-      count++;
-      if (count >= dataSource.length) {
-        setStart(false);
-        return;
-      }
-      sendCommand(count);
-    });
-  };
+      //读取日志渲染到表格
+      ipcRenderer.on('esrganStdout', (m) => {
+        changeColumn(m.count, 'status', m.data);
+        changeColumn(m.count, 'progress', parseInt(m.data.replace('%', '')));
+        console.log(m);
+      });
 
-  const sendCommand = (i) => {
-    console.log(i);
-    ipcRenderer.sendMessage('esrgan', {
-      command: true,
-      path: dataSource[i].path,
-      model,
-    });
+      let exitMsg = await ipcRenderer.invoke('esrgan', {
+        count,
+        type: 'command',
+        path: dataSource[count].path,
+        model,
+      });
+
+      console.log(count, '退出', exitMsg);
+      changeColumn(count, 'status', '完成');
+      changeColumn(count, 'progress', 100);
+      changeColumn(
+        count,
+        'process',
+        `${dataSource[count].path}_optimization.png`
+      );
+      //结束后不再监听当列stdout
+    }
+    setStart(false);
   };
 
   return (
@@ -285,10 +264,10 @@ function TView({ fileLists, model }) {
       title="预览"
       headStyle={{
         position: 'sticky',
-        top: 60,
+        top: '60px',
         zIndex: 10,
         backdropFilter: 'blur(10px)',
-        backgroundColor: 'rgba(255,255,255,.8)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
       }}
       extra={
         <Space size="small">
@@ -296,7 +275,7 @@ function TView({ fileLists, model }) {
             onClick={startProcess}
             type="primary"
             loading={start}
-            disabled={fileLists.length == 0}
+            disabled={dataSource.length == 0}
           >
             开始处理
           </Button>
@@ -307,6 +286,7 @@ function TView({ fileLists, model }) {
       }
     >
       <Table
+        key="id"
         dataSource={dataSource}
         columns={[
           {
@@ -329,12 +309,11 @@ function TView({ fileLists, model }) {
             key: 'process',
             width: '25%',
             render: (n, { process }) =>
-              process ? <Image src={process}></Image> : '等待处理',
+              process && <Image src={process}></Image>,
           },
           {
             title: '状态',
             key: 'status',
-            // dataIndex: 'status',
             render: (n, { status, progress }) => (
               <>
                 <Progress percent={progress} />
@@ -345,14 +324,12 @@ function TView({ fileLists, model }) {
           },
           {
             title: '操作',
-            key: 'status',
-            // dataIndex: 'status',
-            render: (n) => (
+            key: 'handler',
+            render: (n, { id }, index) => (
               <Popconfirm
                 title="确认移除？"
                 onConfirm={() => {
-                  const newData = dataSource.filter((arr) => arr !== n);
-                  setDataSource(newData);
+                  setFiles((prev) => prev.filter((file) => file.uid !== id));
                 }}
               >
                 <a>移除</a>
