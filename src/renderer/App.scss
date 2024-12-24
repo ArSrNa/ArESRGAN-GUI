@@ -10,7 +10,6 @@ body {
   width: 100%;
 }
 
-
 .para-td {
   border: 1px solid #ddd;
   padding: 10px;
@@ -22,7 +21,6 @@ body {
   background-color: rgb(250, 250, 250);
   color: black;
 }
-
 
 /* 
 @font-face {
@@ -39,13 +37,13 @@ body {
   width: 100%;
   height: 3px;
   overflow: hidden;
-  background-color: #AAAAAA;
+  background-color: #aaaaaa;
 }
 
-.ArProgress>div {
+.ArProgress > div {
   position: relative;
   height: 3px;
-  transition: width .5s ease-in-out;
+  transition: width 0.5s ease-in-out;
   background-color: green;
 }
 
@@ -55,7 +53,7 @@ body {
   overflow: hidden;
 }
 
-.ArLoadLine>div {
+.ArLoadLine > div {
   position: relative;
   width: 10%;
   height: 3px;
@@ -85,7 +83,7 @@ body {
   z-index: -1;
   justify-content: center;
   object-fit: cover;
-  filter: brightness(.6);
+  filter: brightness(0.6);
 }
 
 .lead {
@@ -111,15 +109,15 @@ body {
   position: fixed;
   z-index: 100;
   width: 100%;
-  background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: saturate(180%) blur(10px);
   -webkit-backdrop-filter: saturate(180%) blur(10px);
   box-shadow: 0px 1px 10px #999;
-  transition: background-color .5s;
+  transition: background-color 0.5s;
 }
 
 .nav-blur:hover {
-  background: rgba(255, 255, 255, .9);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .container,
@@ -139,7 +137,6 @@ body {
 }
 
 @media (min-width: 576px) {
-
   .container-sm,
   .container {
     max-width: 540px;
@@ -147,7 +144,6 @@ body {
 }
 
 @media (min-width: 768px) {
-
   .container-md,
   .container-sm,
   .container {
@@ -156,7 +152,6 @@ body {
 }
 
 @media (min-width: 992px) {
-
   .container-lg,
   .container-md,
   .container-sm,
@@ -166,7 +161,6 @@ body {
 }
 
 @media (min-width: 1200px) {
-
   .container-xl,
   .container-lg,
   .container-md,
@@ -177,7 +171,6 @@ body {
 }
 
 @media (min-width: 1400px) {
-
   .container-xxl,
   .container-xl,
   .container-lg,
@@ -197,4 +190,21 @@ body {
   margin-bottom: 10px;
   text-align: center;
   line-height: 100px;
+}
+
+.faq {
+  &-main {
+    display: grid;
+    grid-template-columns: 200px auto;
+  }
+  &-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border-right: 1px solid #ddd;
+  }
+  &-list {
+    overflow-y: auto;
+  }
 }

@@ -1,4 +1,4 @@
-import './App.css';
+import './App.scss';
 import { useRef, useState, useEffect } from 'react';
 
 export function ArLoadLine() {
@@ -9,10 +9,14 @@ export function ArLoadLine() {
   );
 }
 
+/**
+ * @deprecated 已使用antd的Upload组件代替
+ */
 export function FileUpload({ files, setFiles }) {
   const fileInputField = useRef(null);
   const [dragging, setDragging] = useState(false);
 
+  /**输入文件并检查 */
   const handleFileInputChange = (event) => {
     const fileList = event.target.files;
     validateAndSetFiles(fileList);
@@ -30,9 +34,13 @@ export function FileUpload({ files, setFiles }) {
     validateAndSetFiles(fileList);
   };
 
+  /**
+   * @description 过滤文件，仅筛选出MIME开头为image/的文件
+   * @param fileList 文件列表
+   */
   const validateAndSetFiles = (fileList: File[]) => {
     // 过滤出图像文件
-    const imageFiles = Array.from(fileList).filter((file: File) =>
+    const imageFiles = Array.from(fileList).filter((file) =>
       file.type.startsWith('image/')
     );
     setFiles((prevFiles) => [...prevFiles, ...imageFiles]);
