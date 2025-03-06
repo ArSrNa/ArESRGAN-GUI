@@ -1,0 +1,15 @@
+$:
+  tag_push:
+    - docker:
+        image: node:22
+      stages:
+        - name: 安装pnpm
+          script: npm i -g pnpm
+        - name: 安装依赖
+          script: pnpm install
+        - name: 构建编译
+          script: npm run package
+        - name: 上传附件
+          image: cnbcool/attachments:latest
+          settings:
+            attachments: "./release/build/*.exe"
