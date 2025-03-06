@@ -1,5 +1,5 @@
-$:
-  tag_push:
+"**":
+  push:
     - docker:
         image: node:22
       stages:
