@@ -1,0 +1,45 @@
+$:
+  vscode:
+    - imports:
+        - https://cnb.cool/arsrna/env/-/blob/main/git.yaml
+      runner:
+        cpus: 16
+      docker:
+        image: docker.cnb.cool/arsrna/dev-env/node22
+      services:
+        - vscode
+        - docker
+      stages:
+        - name: install
+          script: pnpm i
+        - name: config wakatime
+          script: cp .wakatime.cfg ~/.wakatime.cfg
+
+  push:
+    - runner:
+        cpus: 16
+      docker:
+        image: docker.cnb.cool/arsrna/dev-env/node22
+      services:
+        - docker
+      imports:
+        - https://cnb.cool/arsrna/env/-/blob/main/git.yaml
+      stages:
+        - name: sync to github
+          image: tencentcom/git-sync
+          settings:
+            target_url: https://github.com/ArSrNa/ArESRGAN-GUI.git
+            auth_type: https
+            username: ${GIT_USERNAME}
+            password: ${GIT_ACCESS_TOKEN}
+            git_email: "root@arsrna.cn"
+            force: true
+        - name: sync to coding
+          image: tencentcom/git-sync
+          settings:
+            target_url: https://e.coding.net/arsrna/aresrgan/apps.git
+            auth_type: https
+            username: ${CODING_USERNAME}
+            password: ${CODING_ACCESS_TOKEN}
+            git_email: "root@arsrna.cn"
+            force: true
