@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "productName": "ArSrNaUIESRGAN",
+  "appId": "arsrnauiesrgan",
+  "copyright": "上海绫中信息技术有限公司",
+  "asar": true,
+  "win": {
+    "icon": "./icon.ico",
+    "target": ["nsis"]
+  },
+  "mac": {
+    "icon": "./icon.icns",
+    "target": ["dmg"]
+  },
+  "asarUnpack": [],
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "./icon.ico",
+    "uninstallerIcon": "./icon.ico",
+    "installerHeaderIcon": "./icon.ico",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "ArUI ESRGAN 图像版"
+  },
+  "directories": {
+    "app": "release/app",
+    "buildResources": "assets",
+    "output": "release/build"
+  },
+  "extraResources": ["./assets/**"]
+}
