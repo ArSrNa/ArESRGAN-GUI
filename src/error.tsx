@@ -1,6 +1,8 @@
 import './App.scss';
 import { Typography } from 'antd';
+import errorImg from './images/error.png';
 const { Title } = Typography;
+
 
 export default function Error() {
   return (
@@ -14,7 +16,7 @@ export default function Error() {
       }}
     >
       <img
-        src={require('./images/error.png')}
+        src={errorImg}
         style={{ width: 100, margin: 10 }}
       ></img>
       <Title>前面的区域，以后再来探索吧？</Title>
