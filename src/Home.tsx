@@ -59,8 +59,8 @@ export default function Home() {
    * @description 设置输出路径
    */
   const handleSetPath = () => {
-    ipcRenderer.invoke('setPath').then((path) => {
-      form.setFieldsValue({ output: { path } });
+    ipcRenderer.invoke('selectFolder').then((path) => {
+      form.setFieldValue(["output", "path"], path);
     });
   };
 
@@ -127,7 +127,7 @@ export default function Home() {
                 const outputMode = form.getFieldValue(['output', 'mode']);
                 if (outputMode === 'custom') {
                   return (<Form.Item rules={[{ required: true, message: '请选择输出路径' }]}
-                    name={['customPath', 'path']} label="输出路径"
+                    name={['output', 'path']} label="输出路径"
                   >
                     <Input
                       onClick={handleSetPath}
@@ -173,9 +173,6 @@ function TView({ model, form }: {
   /**处理超分辨率（批量） */
   const startProcess = async () => {
     const { output } = form.getFieldsValue();
-
-    // console.log(outputMode, customPath);
-    // return;
     for (let count = 0; count < dataSource.length; count++) {
       setStart(true);
       console.log(count, '开始处理');
@@ -198,11 +195,7 @@ function TView({ model, form }: {
       console.log(count, '退出', exitMsg);
       changeColumn(count, 'status', '完成');
       changeColumn(count, 'progress', 100);
-      changeColumn(
-        count,
-        'process',
-        `${dataSource[count].path}_optimization.png`
-      );
+      changeColumn(count, 'process', exitMsg.output);
       //结束后不再监听当列stdout
     }
     setStart(false);
