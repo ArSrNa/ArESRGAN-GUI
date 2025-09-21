@@ -26,11 +26,6 @@ export default defineConfig(({ command }) => {
                     format: 'es'
                 }
             }
-            // rollupOptions: {
-            //   output: {
-            //     manualChunks: undefined,
-            //   },
-            // },
         },
         css: {
             preprocessorOptions: {
