@@ -291,6 +291,7 @@ ipcMain.handle('esrgan', (evt, data: {
                 type: 'exit',
                 code: code,
                 signal: signal,
+                output: outputPath,
             });
         });
 
