@@ -1,7 +1,7 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "license": "GNU",
   "description": "为ESRGAN设计的UI软件",
   "keywords": [
@@ -47,6 +47,7 @@
     "fs-extra": "^11.3.0"
   },
   "devDependencies": {
+    "sass": "^1.93.0",
     "@ant-design/icons": "^6.0.2",
     "@playwright/test": "^1.48.2",
     "@types/fs-extra": "^11.0.4",

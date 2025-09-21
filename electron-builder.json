@@ -12,7 +12,12 @@
     "icon": "./icon.icns",
     "target": ["dmg"]
   },
-  "asarUnpack": [],
+  "electronDownload": {
+    "mirror": "https://npmmirror.com/mirrors/electron/"
+  },
+  "asarUnpack": ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*"],
+  "files": ["dist-electron", "dist"],
+  "extraResources": ["./public/**/*", "!others", "!test"],
   "nsis": {
     "oneClick": false,
     "allowElevation": true,
@@ -25,9 +30,6 @@
     "shortcutName": "ArUI ESRGAN 图像版"
   },
   "directories": {
-    "app": "release/app",
-    "buildResources": "assets",
-    "output": "release/build"
-  },
-  "extraResources": ["./assets/**"]
+    "output": "release/${version}"
+  }
 }
