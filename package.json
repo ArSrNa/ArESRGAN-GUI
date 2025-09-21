@@ -2,7 +2,7 @@
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
   "version": "6.0.0",
-  "license": "GNU",
+  "license": "GPL-3.0-only",
   "description": "为ESRGAN设计的UI软件",
   "keywords": [
     "electron",
@@ -37,7 +37,8 @@
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "hash": "tsx release.ts"
   },
   "dependencies": {
     "electron-is-dev": "^2.0.0",
@@ -47,7 +48,6 @@
     "fs-extra": "^11.3.0"
   },
   "devDependencies": {
-    "sass": "^1.93.0",
     "@ant-design/icons": "^6.0.2",
     "@playwright/test": "^1.48.2",
     "@types/fs-extra": "^11.0.4",
@@ -65,7 +65,9 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.11.2",
     "recoil": "^0.7.7",
+    "sass": "^1.93.0",
     "tailwindcss": "^3.4.15",
+    "tsx": "^4.20.5",
     "typescript": "^5.4.2",
     "vite": "^5.4.11",
     "vite-plugin-electron": "^0.29.0",
