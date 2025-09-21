@@ -96,4 +96,5 @@ electron-v17.0.0-win32-x64.zip
 outputs/
 dist/
 
-release/app/dist/*
+dist-electron
+release/*
