@@ -22,6 +22,7 @@ import Error from './error';
 import Copyright from './Copyright';
 import { RecoilRoot } from 'recoil';
 import FAQ from './faq';
+import logo from './logo.png';
 
 const { Content, Footer } = Layout;
 const { ipcRenderer } = window;
@@ -48,7 +49,7 @@ function Main() {
       <div className="nav-blur">
         <img
           height="60"
-          src='/logo.png'
+          src={logo}
           style={{ paddingRight: 5 }}
           alt="logo"
         />
@@ -148,39 +149,68 @@ export default function App() {
 }
 
 async function CheckUpdate() {
-  const hash = await ipcRenderer.invoke('getAsarHash');
-  console.log('asar hash; not available in dev', hash);
-  let msg = await fetch(
-    'https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN'
-  ).then((msg) => msg.json());
-  console.log(msg);
-  openNotification(msg);
+  try {
+    const result = await ipcRenderer.invoke('getAsarHash');
 
-  function openNotification(uinfo) {
-    const needUpdate = uinfo.hash !== hash;
-    const { vNumber, uTime, content, link } = uinfo;
+    // Handle development environment or error cases
+    if (!result || result.hash === null) {
+      console.log('dev环境跳过检查更新或无法获取hash');
+      return;
+    }
+
+    const { hash, type, error } = result;
+
+    if (error) {
+      console.error('获取asar hash失败:', error);
+      notification.open({
+        message: '检查更新失败',
+        description: '无法获取应用版本信息，请稍后重试',
+        icon: <CloudUploadOutlined style={{ color: '#ff4d4f' }} />,
+      });
+      return;
+    }
+
+    console.log('获取到hash:', hash, '类型:', type);
+
+    let msg = await fetch(
+      'https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN'
+    ).then((msg) => msg.json());
+    console.log(msg);
+    openNotification(msg, hash, type);
+
+    function openNotification(uinfo, hash, type) {
+      const needUpdate = uinfo.hash[type] !== hash;
+      const { vNumber, uTime, content, link } = uinfo;
+      notification.open({
+        message: needUpdate ? '有新版本' : '暂无更新',
+        description: needUpdate ? (
+          <>
+            发现更新：{uTime} {content} 请前往
+            <a href={link} target="_blank">
+              此处
+            </a>
+            下载
+          </>
+        ) : (
+          <>
+            当前版本：{vNumber} {content}
+          </>
+        ),
+        icon: (
+          <CloudUploadOutlined
+            style={{
+              color: '#108ee9',
+            }}
+          />
+        ),
+      });
+    }
+  } catch (error) {
+    console.error('检查更新时发生错误:', error);
     notification.open({
-      message: needUpdate ? '有新版本' : '暂无更新',
-      description: needUpdate ? (
-        <>
-          发现更新：{uTime} {content} 请前往
-          <a href={link} target="_blank">
-            此处
-          </a>
-          下载
-        </>
-      ) : (
-        <>
-          当前版本：{vNumber} {content}
-        </>
-      ),
-      icon: (
-        <CloudUploadOutlined
-          style={{
-            color: '#108ee9',
-          }}
-        />
-      ),
+      message: '检查更新失败',
+      description: '网络连接失败或服务器错误，请稍后重试',
+      icon: <CloudUploadOutlined style={{ color: '#ff4d4f' }} />,
     });
   }
 }
