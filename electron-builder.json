@@ -6,18 +6,33 @@
   "asar": true,
   "win": {
     "icon": "./icon.ico",
-    "target": ["nsis"]
+    "target": [
+      "nsis"
+    ],
+    "artifactName": "${productName}_${version}.${ext}"
   },
   "mac": {
     "icon": "./icon.icns",
-    "target": ["dmg"]
+    "target": [
+      "dmg"
+    ]
   },
   "electronDownload": {
     "mirror": "https://npmmirror.com/mirrors/electron/"
   },
-  "asarUnpack": ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*"],
-  "files": ["dist-electron", "dist"],
-  "extraResources": ["public", "!others", "!test"],
+  "asarUnpack": [
+    "**/node_modules/sharp/**/*",
+    "**/node_modules/@img/**/*"
+  ],
+  "files": [
+    "dist-electron",
+    "dist"
+  ],
+  "extraResources": [
+    "public",
+    "!others",
+    "!test"
+  ],
   "nsis": {
     "oneClick": false,
     "allowElevation": true,
@@ -27,7 +42,8 @@
     "installerHeaderIcon": "./icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "ArUI ESRGAN 图像版"
+    "shortcutName": "ArUI ESRGAN 图像版",
+    "artifactName": "${productName}_${version}.${ext}"
   },
   "directories": {
     "output": "release/${version}"
