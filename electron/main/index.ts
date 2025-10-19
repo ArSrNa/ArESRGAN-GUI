@@ -21,19 +21,13 @@ import { FormDataType } from '@/types';
 
 
 process.env.APP_ROOT = path.join(__dirname, '../..');
-
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
+// export const RENDERER_DIST = (process.env.APP_ROOT);
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
+export const getAssetPath = (...paths: string[]): string => (isDebug ? path.join(process.env.VITE_PUBLIC, ...paths) : path.join(process.resourcesPath, 'public', ...paths));
 
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
-    ? path.join(process.env.APP_ROOT, 'public')
-    : RENDERER_DIST;
-
-
-const getAssetPath = (...paths) => {
-    return path.join(process.env.VITE_PUBLIC, ...paths);
-};
 
 // Disable GPU Acceleration for Windows 7
 if (os.release().startsWith('6.1')) app.disableHardwareAcceleration();
