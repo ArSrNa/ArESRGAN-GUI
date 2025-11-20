@@ -34,12 +34,3 @@ $:
             password: ${GIT_ACCESS_TOKEN}
             git_email: "root@arsrna.cn"
             force: true
-        - name: sync to coding
-          image: tencentcom/git-sync
-          settings:
-            target_url: https://e.coding.net/arsrna/aresrgan/apps.git
-            auth_type: https
-            username: ${CODING_USERNAME}
-            password: ${CODING_ACCESS_TOKEN}
-            git_email: "root@arsrna.cn"
-            force: true

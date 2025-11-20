@@ -1,20 +1,19 @@
-import { atom } from 'recoil';
-import { DataSourceType } from './types';
-import { UploadChangeParam, UploadFile } from 'antd/es/upload';
+import { atom } from "recoil";
+import { DataSourceType } from "./types";
 
 export const DataSourceState = atom<Array<DataSourceType>>({
-  key: 'DataSource',
+  key: "DataSource",
   default: [],
   dangerouslyAllowMutability: true,
 });
 
-export const filesState = atom<UploadChangeParam<UploadFile<any>>['fileList']>({
-  key: 'files',
+export const filesState = atom<File[] | null>({
+  key: "files",
   default: [],
   dangerouslyAllowMutability: true,
 });
 
 export const modelsState = atom<{ label: string; value: string }[]>({
-  key: 'model',
+  key: "model",
   default: [],
 });
