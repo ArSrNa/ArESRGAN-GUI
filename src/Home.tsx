@@ -95,7 +95,7 @@ export default function Home() {
                     </SelectTrigger>
                     <SelectContent>
                       {modelList?.map((m) => (
-                        <SelectItem value={m}>{m}</SelectItem>
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
