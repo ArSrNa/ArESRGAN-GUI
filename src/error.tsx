@@ -1,27 +1,17 @@
-import './App.scss';
-import { Typography } from 'antd';
-import errorImg from './images/error.png';
-const { Title } = Typography;
-
+import { useLocation } from "react-router-dom";
+import "./App.scss";
+import errorImg from "./images/error.png";
 
 export default function Error() {
+  const location = useLocation();
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '60vh',
-        flexDirection: 'column',
-      }}
-    >
-      <img
-        src={errorImg}
-        style={{ width: 100, margin: 10 }}
-      ></img>
-      <Title>前面的区域，以后再来探索吧？</Title>
-      <div className="lead">页面错误，请确认访问地址是否正确。</div>
-      {/* <div className="lead">正在建设中，敬请期待！</div> */}
+    <div className="flex items-center justify-center h-[60vh] flex-col gap-2">
+      <img src={errorImg} className="h-20" />
+      <h2 className="text-xl font-bold">前面的区域，以后再来探索吧？</h2>
+      <div>页面错误，请确认访问地址是否正确。</div>
+      <pre>
+        <code>请求路径：{location.pathname}</code>
+      </pre>
     </div>
   );
 }
