@@ -1,6 +1,6 @@
 export interface DataSourceType {
   /**列唯一id，标识删除用 */
-  id: string;
+  index: number;
   /**原图 */
   origin: string;
   /**处理后路径（保存路径，TODO） */
@@ -13,11 +13,16 @@ export interface DataSourceType {
   status: string;
 }
 
-
 export interface FormDataType {
+  /**文件 */
+  files: File[];
+  /**模型选择 */
   model: string;
+  /**输出路径 */
   output: {
-    mode: string;
+    /**输出模式 */
+    mode: "custom" | "current";
+    /**输出路径 */
     path?: string;
   };
 }
