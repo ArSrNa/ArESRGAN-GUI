@@ -1,12 +1,13 @@
 "use client";
 
-import { UploadIcon } from "lucide-react";
+import { Trash2Icon, UploadIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
 import type { DropEvent, DropzoneOptions, FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Separator } from "../../separator";
 
 type DropzoneContextType = {
   src?: File[];
@@ -129,11 +130,18 @@ export const DropzoneContent = ({
   }
 
   return (
-    <div className={cn("flex flex-col items-center justify-center", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center w-full",
+        className
+      )}
+    >
       <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
         <UploadIcon size={16} />
       </div>
-      <p className="my-2 w-full truncate font-medium text-sm">{src.length}</p>
+      <p className="my-2 w-full truncate font-medium text-sm">
+        已选择{src.length}张图片
+      </p>
       <p className="w-full text-wrap text-muted-foreground text-xs">
         点击此处或拖入文件以上传
       </p>

@@ -1,11 +1,10 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import fs from "fs-extra";
 import path from "path";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import crypto from "crypto";
 import os from "node:os";
-import { getHash } from "./utils";
-import { FormDataType } from "@/types";
+
+import "./esrgan";
 
 // The built directory structure
 //
@@ -50,7 +49,7 @@ console.log("SystemType", {
   arch: os.arch(),
 });
 
-let mainWindow: BrowserWindow | null = null;
+export let mainWindow: BrowserWindow | null = null;
 const preload = path.join(__dirname, "../preload/index.js");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 
@@ -214,126 +213,6 @@ ipcMain.handle("setOutPath", async (evt, msg) => {
 ipcMain.on("openDevTools", (evt, msg) => {
   mainWindow.webContents.openDevTools();
 });
-
-let esrgan: ChildProcessWithoutNullStreams;
-ipcMain.handle(
-  "esrgan",
-  (
-    evt,
-    data: {
-      count: string;
-      type: "command" | "kill";
-      filepath: string;
-      output: {
-        mode: "current" | "custom";
-        path?: string;
-      };
-      model: string;
-    }
-  ) => {
-    const macPath = getAssetPath("./realsgan/macos_realesrgan-ncnn-vulkan");
-    const windowsPath = getAssetPath("./realsgan/realesrgan-ncnn-vulkan.exe");
-    const systemType = os.type();
-    console.log({ systemType });
-
-    if (data.type === "kill") {
-      esrgan.kill("SIGINT");
-      console.log("killing");
-      mainWindow.setProgressBar(-1);
-      return {
-        type: "exit",
-        code: -1,
-      };
-    }
-
-    return new Promise((resolve, reject) => {
-      var { filepath, output, model, count } = data;
-      console.log(data);
-
-      // 验证输入文件是否存在
-      if (!fs.existsSync(filepath)) {
-        const error = new Error(`文件不存在：${filepath}`);
-        console.error(error.message);
-        reject(error);
-        return;
-      }
-
-      const modelPath = getAssetPath("./realsgan/models");
-      /**根据不同系统类型选择不同的可执行文件 */
-      const executablePath = systemType === "Darwin" ? macPath : windowsPath;
-      const filename = path.basename(filepath, path.extname(filepath));
-      /**自定义模式时，使用传入的路径 */
-      const outputPath =
-        output.mode === "current"
-          ? `${filepath}_opt.png`
-          : path.join(output.path, filename + "_opt.png");
-
-      //检查自定义路径是否存在，不存在则新建文件夹
-      if (output.mode === "custom" && !fs.existsSync(output.path)) {
-        fs.mkdirSync(output.path, { recursive: true });
-      }
-
-      const args = [
-        "-i",
-        filepath,
-        "-o",
-        outputPath,
-        "-m",
-        modelPath,
-        "-n",
-        model,
-      ];
-
-      esrgan = spawn(executablePath, args);
-
-      esrgan.stderr.on("data", function (data) {
-        console.log(data.toString("utf8"));
-        var progressSet = parseInt(data) / 100;
-        if (typeof progressSet == "number")
-          mainWindow.setProgressBar(progressSet);
-
-        mainWindow.webContents.send("esrganStdout", {
-          type: "log",
-          data: data.toString("utf8"),
-          count,
-        });
-        //return data;
-      });
-
-      esrgan.on("error", function (error) {
-        console.error("ESRGAN process error:", error);
-        mainWindow.setProgressBar(-1);
-        mainWindow.webContents.send("esrganStdout", {
-          type: "error",
-          data: `Process error: ${error.message}`,
-          count,
-        });
-        reject(error);
-      });
-
-      esrgan.on("exit", function (code, signal) {
-        mainWindow.setProgressBar(-1);
-        console.log("child process exit, code:", code, "signal:", signal);
-
-        if (signal === "SIGSEGV") {
-          console.error("SIGSEGV detected - segmentation fault");
-          mainWindow.webContents.send("esrganStdout", {
-            type: "error",
-            data: "Process crashed with SIGSEGV (segmentation fault)",
-            count,
-          });
-        }
-
-        resolve({
-          type: "exit",
-          code: code,
-          signal: signal,
-          output: outputPath,
-        });
-      });
-    });
-  }
-);
 
 ipcMain.handle("getModels", async (evt, msg) => {
   try {
