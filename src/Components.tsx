@@ -1,5 +1,5 @@
-import './App.scss';
-import { useRef, useState, useEffect } from 'react';
+import "./App.scss";
+import { useRef, useState, useEffect } from "react";
 
 export function ArLoadLine() {
   return (
@@ -10,7 +10,7 @@ export function ArLoadLine() {
 }
 
 /**
- * @deprecated 已使用antd的Upload组件代替
+ * @deprecated 已使用的Upload组件代替
  */
 export function FileUpload({ files, setFiles }) {
   const fileInputField = useRef(null);
@@ -41,7 +41,7 @@ export function FileUpload({ files, setFiles }) {
   const validateAndSetFiles = (fileList: File[]) => {
     // 过滤出图像文件
     const imageFiles = Array.from(fileList).filter((file) =>
-      file.type.startsWith('image/')
+      file.type.startsWith("image/")
     );
     setFiles((prevFiles) => [...prevFiles, ...imageFiles]);
   };
@@ -54,12 +54,12 @@ export function FileUpload({ files, setFiles }) {
         onDrop={handleDrop}
       >
         {dragging ? (
-          '松开鼠标以上传'
+          "松开鼠标以上传"
         ) : (
           <>
             拖拽文件到此 或
             <a
-              style={{ color: 'royalblue' }}
+              style={{ color: "royalblue" }}
               onClick={() => fileInputField.current.click()}
             >
               选择文件
@@ -71,7 +71,7 @@ export function FileUpload({ files, setFiles }) {
       <input
         type="file"
         ref={fileInputField}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onInput={handleFileInputChange}
         multiple
         accept="image/*"
