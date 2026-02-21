@@ -4,7 +4,6 @@ import "./App.scss";
 import Home from "./Home";
 import Error from "./error";
 import Copyright from "./Copyright";
-import { RecoilRoot } from "recoil";
 import FAQ from "./faq";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar1 } from "./components/navbar1";
@@ -47,7 +46,7 @@ function Main() {
           <Separator orientation="vertical" />
           上海绫中信息技术有限公司
           <Separator orientation="vertical" />
-          GNU协议 禁止用于商业用途！
+          GNU协议 请勿用于商业用途！
         </div>
       </div>
     </ErrorBoundary>
@@ -72,9 +71,7 @@ export default function App() {
   }, []);
   return (
     <Router>
-      <RecoilRoot>
-        <Main />
-      </RecoilRoot>
+      <Main />
     </Router>
   );
 }

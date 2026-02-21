@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { filesState } from "./states";
 import { FormDataType } from "./types";
 import "./App.scss";
 import { PauseCircleIcon, PlayCircleIcon, Trash2Icon } from "lucide-react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-
 import { FieldLegend, FieldSet } from "./components/ui/field";
-import { Dropzone, DropzoneContent } from "./components/ui/shadcn-io/dropzone";
+import { Dropzone } from "./components/dropzone";
 import {
   Select,
   SelectContent,
@@ -23,6 +22,7 @@ import { Button } from "./components/ui/button";
 
 const { ipcRenderer, webUtils } = window;
 
+
 export default function Home() {
   const form = useForm<FormDataType>({
     defaultValues: {
@@ -33,7 +33,7 @@ export default function Home() {
       },
     },
   });
-  const [files, setFiles] = useRecoilState(filesState);
+  const [files, setFiles] = useAtom(filesState);
   const [modelList, setModelList] = useState<string[]>([]);
 
   useEffect(() => form.setValue("files", files), [files]);
@@ -69,17 +69,14 @@ export default function Home() {
           <FieldSet>
             <FieldLegend>上传图片</FieldLegend>
             <Dropzone
-              accept={{ "image/*": [] }}
-              onDrop={setFiles}
+              accept="image/*"
               multiple
-              maxFiles={null}
-              maxSize={null}
-              onError={(err) => toast.error(err.message)}
-              src={files}
+              files={files}
+              onFileChange={setFiles}
             >
-              <DropzoneContent />
             </Dropzone>
           </FieldSet>
+
 
           <div className="flex flex-col gap-5">
             <FieldSet>
@@ -139,71 +136,6 @@ export default function Home() {
             </FieldSet>
           </div>
         </form>
-
-        {/* <Card title="文件输入配置">
-          <Form
-            form={form}
-            onFinish={console.log}
-            initialValues={{
-              model: "realesrgan-x4plus-anime",
-              output: {
-                mode: "current",
-              },
-            }}
-            layout="horizontal"
-          >
-            <Form.Item label="文件">
-              <Dragger
-                onChange={(e) => setFiles(e.fileList)}
-                fileList={files}
-                customRequest={() => {}}
-                showUploadList={false}
-                multiple
-                accept="image/*"
-              >
-                <p className="ant-upload-drag-icon">
-                  <PlusCircleIcon />
-                </p>
-                <p className="ant-upload-text">点击此处或拖入文件以上传</p>
-              </Dragger>
-            </Form.Item>
-            <Form.Item name="model" label="选择模型">
-              <Select
-                showSearch
-                style={{ width: "100%" }}
-                placeholder="选择模型"
-                options={modelList}
-                onChange={(e) => setModel(e)}
-              />
-            </Form.Item>
-
-            <Form.Item label="输出路径" name={["output", "mode"]}>
-              <Radio.Group>
-                <Radio value="custom">自定义路径</Radio>
-                <Radio value="current">当前路径</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            <Form.Item dependencies={[["output", "mode"]]} noStyle>
-              {() => {
-                const outputMode = form.getFieldValue(["output", "mode"]);
-                if (outputMode === "custom") {
-                  return (
-                    <Form.Item
-                      rules={[{ required: true, message: "请选择输出路径" }]}
-                      name={["output", "path"]}
-                      label="输出路径"
-                    >
-                      <Input onClick={handleSetPath} readOnly />
-                    </Form.Item>
-                  );
-                }
-                return null;
-              }}
-            </Form.Item>
-          </Form>
-        </Card> */}
-
         <TView form={form} />
       </div>
     </>
@@ -211,7 +143,7 @@ export default function Home() {
 }
 
 function TView({ form }: { form: UseFormReturn<FormDataType> }) {
-  const [files, setFiles] = useRecoilState(filesState);
+  const [files, setFiles] = useAtom(filesState);
   const [start, setStart] = useState(false);
   const [srcs, setSrcs] = useState<string[]>([]);
   const stop = useRef(false);

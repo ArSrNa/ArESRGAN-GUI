@@ -64,7 +64,6 @@ async function createWindow() {
     webPreferences: {
       preload,
       webSecurity: false,
-      // odeIntegration: true,
       // contextIsolation: false,
       // nodeIntegration: true,
       devTools: true,

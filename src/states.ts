@@ -1,12 +1,5 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 
-export const filesState = atom<File[] | null>({
-  key: "files",
-  default: [],
-  dangerouslyAllowMutability: true,
-});
+export const filesState = atom<File[]>([]);
 
-export const modelsState = atom<{ label: string; value: string }[]>({
-  key: "model",
-  default: [],
-});
+export const modelsState = atom<{ label: string; value: string }[]>([]);
