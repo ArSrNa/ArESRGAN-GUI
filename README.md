@@ -1,48 +1,35 @@
-# ArSrNaUI ESRGAN图像超分辨率软件
+# ArSrNaUI ESRGAN图像超分
 
-## 构建本软件
+## 构建
 
-平台：node v18.13.0 ；npm v8.19.3
+平台：node 25 ；bun包管理器1.3.1；使用macOS15开发
 
-### clone源代码
+vite electron框架，比以前的react electron启动快91%
 
-````shell
-git clone https://github.com/ArSrNa/ArESRGAN-GUI.git
-````
-
-安装依赖
+### clone
 
 ````shell
-cd ArESRGAN-GUI
-npm i
+git clone https://cnb.cool/arsrna/esrgan-app
 ````
 
-*中国大陆用户注意：由于dddd的原因，安装过程不一定顺利，因为electron某些依赖使用镜像会报错，所以建议不要换镜像下载，使用npm默认镜像即可*
-
-安装完成后即可启动
+### 安装依赖
 
 ````shell
-npm run start
+cd esrgan-app
+bun i
 ````
 
-## 源代码内容
+*中国大陆用户注意：由于dddd的原因，安装过程不一定顺利，因为electron某些依赖使用镜像会报错，所以建议不要换镜像下载，使用默认镜像即可*
 
-| 目录      | 内容         |
-| --------- | ------------ |
-| ./src     | 主应用资源   |
-| ./backres | 依赖平台文件 |
+### 启动
 
-./src目录内容如下
-
-| 文件       | 内容       |
-| ---------- | ---------- |
-| js/        | 前端代码   |
-| res/       | 前端依赖   |
-| index.css  | 前端样式   |
-| index.html | 前端结构   |
-| index.js   | 后端主应用 |
+````shell
+bun dev
+````
 
 ## 实现方式与原理
+
+*以下内容比较久远，不管用了，最新的文档我还懒得写*
 
 ### 前后端通讯
 
