@@ -44,7 +44,7 @@ export async function CheckUpdate() {
       "https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN"
     ).then((msg) => msg.json());
     console.log(msg);
-    const needUpdate = msg.hash["windows"] !== hash;
+    const needUpdate = msg.hash[type] !== hash;
     const { vNumber, uTime, content, link } = msg;
     if (needUpdate) {
       toast.success(

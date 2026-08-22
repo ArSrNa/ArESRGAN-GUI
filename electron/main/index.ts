@@ -162,29 +162,23 @@ ipcMain.handle("getAsarHash", async () => {
   }
   const type = os.type() === "Darwin" ? "macos" : "windows";
 
-  console.log("process.resourcesPath:", process.resourcesPath);
-  console.log("process.cwd():", process.cwd());
-  console.log("app.isPackaged:", app.isPackaged);
-  console.log("app.getVersion():", app.getVersion());
-
   try {
-    // Since we can't read the asar file from within the asar archive,
-    // we'll use the application version and other identifiers to create a hash
-    const version = app.getVersion();
-    const platform = os.platform();
-    const arch = os.arch();
-    const appName = app.getName();
-
-    // Create a unique identifier based on app info
-    const appInfo = `${appName}-${version}-${platform}-${arch}`;
-    console.log("App info for hash:", appInfo);
-
-    // Generate a hash from the app info
-    const hash = crypto.createHash("sha256").update(appInfo).digest("hex");
+    // Electron intercepts fs access to app.asar (treats it as an archive),
+    // so temporarily disable asar support to read the raw file.
+    // This must match how release.ts hashes the built app.asar.
+    const asarPath = path.join(process.resourcesPath, "app.asar");
+    console.log("asar path:", asarPath);
+    process.noAsar = true;
+    const hash = crypto
+      .createHash("sha256")
+      .update(fs.readFileSync(asarPath))
+      .digest("hex");
+    process.noAsar = false;
     console.log("Generated hash:", hash);
 
     return { type, hash };
   } catch (error) {
+    process.noAsar = false;
     console.error("Error generating app hash:", error);
     return { type, hash: null, error: "Failed to generate app hash" };
   }
