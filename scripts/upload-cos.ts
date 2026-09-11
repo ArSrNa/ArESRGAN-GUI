@@ -28,13 +28,15 @@ interface UploadPlanOptions {
 interface UploadFile {
   filePath: string;
   size: number;
+  arch: Architecture;
   key: COS.Key;
 }
 
 interface UploadPlan {
   version: string;
   platform: Platform;
-  arch: Architecture;
+  /** 仅在显式传入 --arch 时存在；自动识别模式下每个产物各自带 arch */
+  arch?: Architecture;
   files: UploadFile[];
 }
 
@@ -69,11 +71,12 @@ export function readConfig(env: Environment): UploadConfig {
   };
 }
 
-export async function createUploadPlan({ root = projectRoot, platform: inputPlatform = process.platform, arch: inputArch = process.arch, prefix = DEFAULT_PREFIX }: UploadPlanOptions = {}): Promise<UploadPlan> {
+export async function createUploadPlan({ root = projectRoot, platform: inputPlatform = process.platform, arch: inputArch, prefix = DEFAULT_PREFIX }: UploadPlanOptions = {}): Promise<UploadPlan> {
   const platform = platforms[inputPlatform];
-  const arch = architectures[inputArch];
+  // arch 为可选筛选条件：不传时扫描全部当前版本安装包，逐个按文件名识别架构。
+  const arch = inputArch === undefined ? undefined : architectures[inputArch];
   if (!platform) throw new Error("平台必须是 windows、macos 或 linux");
-  if (!arch || arch === "universal" && platform !== "macos") throw new Error("不支持的目标架构");
+  if (inputArch !== undefined && (!arch || arch === "universal" && platform !== "macos")) throw new Error("不支持的目标架构");
   if (typeof prefix !== "string" || !prefix || prefix.includes("\\") || prefix.split("/").some(p => !p || p === "." || p === "..")) {
     throw new Error(`COS_PREFIX 必须是无首尾斜杠的有效目录，例如 ${DEFAULT_PREFIX}`);
   }
@@ -92,6 +95,8 @@ export async function createUploadPlan({ root = projectRoot, platform: inputPlat
     throw error;
   }
   const files: UploadFile[] = [];
+  // Builder omits x64 in default DMG/AppImage names; Windows names omit all architectures, so fall back to the requested or host arch there.
+  const fallbackArch: Architecture = platform === "windows" ? arch ?? architectures[process.arch] ?? "x64" : "x64";
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     // Only top-level installers: never upload unpacked applications, symlinks or debug files.
     const extension = extensions[platform].find(ext => entry.name.endsWith(ext));
@@ -101,15 +106,20 @@ export async function createUploadPlan({ root = projectRoot, platform: inputPlat
     const match = endsWithVersion(stem) ? null : stem.match(/[-_](x86_64|aarch64|universal|armv7l|arm64|amd64|armhf|ia32|i386|x64)$/);
     if (match) stem = stem.slice(0, -match[0].length);
     if (!endsWithVersion(stem)) continue;
-    // Builder omits x64 in default DMG/AppImage names. Current Windows names omit all architectures.
-    const fileArch: Architecture | undefined = match ? architectures[match[1]] : platform === "windows" ? arch : "x64";
-    if (fileArch !== arch) continue;
+    let fileArch = fallbackArch;
+    if (match) {
+      const named = architectures[match[1]];
+      if (!named) continue;
+      fileArch = named;
+    }
+    if (arch && fileArch !== arch) continue;
     const filePath = path.join(outputDir, entry.name);
     const { size } = await stat(filePath);
     if (!size) throw new Error(`安装包为空：${entry.name}`);
-    files.push({ filePath, size, key: `${prefix}/${pkg.version}/${platform}/${arch}/${entry.name}` });
+    files.push({ filePath, size, arch: fileArch, key: `${prefix}/${pkg.version}/${platform}/${fileArch}/${entry.name}` });
   }
-  if (!files.length) throw new Error(`未找到 ${platform}/${arch} 的 ${pkg.version} 安装包（${extensions[platform].join("、")}）`);
+  const target = arch ? `${platform}/${arch}` : `${platform}（自动识别架构）`;
+  if (!files.length) throw new Error(`未找到 ${target} 的 ${pkg.version} 安装包（${extensions[platform].join("、")}）`);
   return { version: pkg.version, platform, arch, files };
 }
 
@@ -149,13 +159,14 @@ export async function main(args: string[] = process.argv.slice(2), env: Environm
   });
   if (values.help) {
     console.log("bun run upload:cos [--platform windows|macos|linux] [--arch x64|arm64|ia32|armv7l|universal] [--dry-run]");
-    console.log("默认使用当前运行平台和架构；跨架构构建后须传入对应 --arch。预览不需要 COS 凭据。");
+    console.log("默认使用当前运行平台；不传 --arch 时扫描构建目录，按产物文件名自动识别架构并上传该版本的全部安装包。");
+    console.log("例如 macOS 上的 ArSrNaUIESRGAN-7.1.0-arm64.dmg 会识别为 arm64。预览不需要 COS 凭据。");
     return;
   }
   const plan = await createUploadPlan({ platform: values.platform, arch: values.arch, prefix: env.COS_PREFIX || DEFAULT_PREFIX });
   if (values["dry-run"]) {
-    for (const file of plan.files) console.log(`${file.filePath} -> ${file.key}`);
-    console.log(`预览完成：${plan.files.length} 个安装包，未发送上传请求`);
+    for (const file of plan.files) console.log(`${file.filePath} -> ${file.key}（${file.arch}）`);
+    console.log(`预览完成：${plan.files.length} 个安装包（${[...new Set(plan.files.map(f => f.arch))].join("、")}），未发送上传请求`);
     return;
   }
   const config = readConfig(env);

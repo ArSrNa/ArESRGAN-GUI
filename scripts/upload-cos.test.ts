@@ -39,6 +39,30 @@ describe("COS 安装包选择", () => {
       expect(plan.files[0].key).toContain(`/macos/${arch}/`);
     }
   });
+  it("未指定 --arch 时按文件名自动识别架构", async () => {
+    await artifact("ArSrNaUIESRGAN-7.1.0.dmg");
+    await artifact("ArSrNaUIESRGAN-7.1.0-arm64.dmg");
+    await artifact("ArSrNaUIESRGAN-7.1.0-universal.dmg");
+    await artifact("ArSrNaUIESRGAN-7.0.0-arm64.dmg");
+    const plan = await createUploadPlan({ root, platform: "darwin" });
+    expect(plan.arch).toBeUndefined();
+    expect(plan.files.map(f => f.arch).sort()).toEqual(["arm64", "universal", "x64"]);
+    expect(plan.files.map(f => f.key).sort()).toEqual([
+      "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/arm64/ArSrNaUIESRGAN-7.1.0-arm64.dmg",
+      "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/universal/ArSrNaUIESRGAN-7.1.0-universal.dmg",
+      "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/x64/ArSrNaUIESRGAN-7.1.0.dmg",
+    ]);
+  });
+  it("未指定 --arch 时仍上传不含架构后缀的 Windows 安装包", async () => {
+    await artifact("ArSrNaUIESRGAN_7.1.0.exe");
+    const plan = await createUploadPlan({ root, platform: "windows" });
+    expect(plan.files).toHaveLength(1);
+    expect(plan.files[0].key).toMatch(/^app-release\/ArSrNaUI-ESRGAN\/7\.1\.0\/windows\/[a-z0-9]+\/ArSrNaUIESRGAN_7\.1\.0\.exe$/);
+  });
+  it("显式指定架构时忽略其他架构产物", async () => {
+    await artifact("ArSrNaUIESRGAN-7.1.0-arm64.dmg");
+    await expect(createUploadPlan({ root, platform: "darwin", arch: "x64" })).rejects.toThrow("未找到 macos/x64");
+  });
   it("选择 Linux AppImage 和 Snap，识别 amd64，跳过其他架构", async () => {
     for (const name of ["ArSrNaUIESRGAN-7.1.0.AppImage", "esrganui_7.1.0_amd64.snap", "ArSrNaUIESRGAN-7.1.0-arm64.AppImage", "ArSrNaUIESRGAN_7.1.0.exe"]) await artifact(name);
     const plan = await createUploadPlan({ root, platform: "linux", arch: "x64" });
