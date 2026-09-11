@@ -75,16 +75,16 @@ describe("COS 配置和 SDK 调用", () => {
   const credentials = { SECRET_ID: "test-id", SECRET_KEY: "test-key" };
   it.each([
     { COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou" },
-    { "APP_RELEASE.BUCKET": "test-123", "APP_RELEASE.REGION": "ap-guangzhou" },
-    { APP_RELEASE: JSON.stringify({ BUCKET: "test-123", REGION: "ap-guangzhou" }) },
+    { APP_RELEASE_BUCKET: "test-123", APP_RELEASE_REGION: "ap-guangzhou" },
   ])("读取配置 %j", env => {
     expect(readConfig({ ...credentials, ...env })).toMatchObject({ Bucket: "test-123", Region: "ap-guangzhou" });
   });
   it("缺少配置时只报告变量名", () => {
     expect(() => readConfig(credentials)).toThrow("COS_BUCKET");
+    expect(() => readConfig(credentials)).toThrow("APP_RELEASE_BUCKET");
   });
-  it("独立配置优先于 APP_RELEASE", () => {
-    expect(readConfig({ ...credentials, COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou", APP_RELEASE: "unused" })).toMatchObject({ Bucket: "test-123", Region: "ap-guangzhou" });
+  it("独立配置优先于 APP_RELEASE_BUCKET / APP_RELEASE_REGION", () => {
+    expect(readConfig({ ...credentials, COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou", APP_RELEASE_BUCKET: "unused", APP_RELEASE_REGION: "unused" })).toMatchObject({ Bucket: "test-123", Region: "ap-guangzhou" });
   });
   it("按计划传递分块上传参数", async () => {
     await artifact("App_7.1.0.exe");

@@ -55,24 +55,16 @@ const projectRoot = fileURLToPath(new URL("../", import.meta.url));
 const platforms: Record<string, Platform | undefined> = { win32: "windows", windows: "windows", darwin: "macos", macos: "macos", linux: "linux" };
 const extensions: Record<Platform, readonly string[]> = { windows: [".exe"], macos: [".dmg"], linux: [".AppImage", ".snap"] };
 const architectures: Record<string, Architecture | undefined> = { x64: "x64", amd64: "x64", x86_64: "x64", arm64: "arm64", aarch64: "arm64", ia32: "ia32", i386: "ia32", armv7l: "armv7l", armhf: "armv7l", universal: "universal" };
+const APP_RELEASE_BUCKET_KEY = "APP_RELEASE_BUCKET";
+const APP_RELEASE_REGION_KEY = "APP_RELEASE_REGION";
 
 export function readConfig(env: Environment): UploadConfig {
-  // CNB deployments can expose APP_RELEASE as JSON or as dotted environment keys.
-  let release: unknown = {};
-  if (env.APP_RELEASE && (!(env.COS_BUCKET || env["APP_RELEASE.BUCKET"]) || !(env.COS_REGION || env["APP_RELEASE.REGION"]))) {
-    try { release = JSON.parse(env.APP_RELEASE); }
-    catch { throw new Error("APP_RELEASE 必须是 JSON 对象，或改用 COS_BUCKET / COS_REGION"); }
-    if (!isRecord(release)) {
-      throw new Error("APP_RELEASE 必须是 JSON 对象");
-    }
-  }
-  const releaseFields = isRecord(release) ? release : {};
   return {
     SecretId: requiredString(env.SECRET_ID, "SECRET_ID"),
     SecretKey: requiredString(env.SECRET_KEY, "SECRET_KEY"),
     SecurityToken: env.SESSION_TOKEN || undefined,
-    Bucket: requiredString(env.COS_BUCKET || env["APP_RELEASE.BUCKET"] || releaseFields.BUCKET, "COS_BUCKET / APP_RELEASE.BUCKET"),
-    Region: requiredString(env.COS_REGION || env["APP_RELEASE.REGION"] || releaseFields.REGION, "COS_REGION / APP_RELEASE.REGION"),
+    Bucket: requiredString(env.COS_BUCKET || env[APP_RELEASE_BUCKET_KEY], `COS_BUCKET / ${APP_RELEASE_BUCKET_KEY}`),
+    Region: requiredString(env.COS_REGION || env[APP_RELEASE_REGION_KEY], `COS_REGION / ${APP_RELEASE_REGION_KEY}`),
   };
 }
 
@@ -148,10 +140,12 @@ export async function uploadPlan(
 }
 
 export async function main(args: string[] = process.argv.slice(2), env: Environment = process.env): Promise<void> {
-  const { values } = parseArgs({ args, options: {
-    platform: { type: "string" }, arch: { type: "string" },
-    "dry-run": { type: "boolean", default: false }, help: { type: "boolean", default: false },
-  } });
+  const { values } = parseArgs({
+    args, options: {
+      platform: { type: "string" }, arch: { type: "string" },
+      "dry-run": { type: "boolean", default: false }, help: { type: "boolean", default: false },
+    }
+  });
   if (values.help) {
     console.log("bun run upload:cos [--platform windows|macos|linux] [--arch x64|arm64|ia32|armv7l|universal] [--dry-run]");
     console.log("默认使用当前运行平台和架构；跨架构构建后须传入对应 --arch。预览不需要 COS 凭据。");
