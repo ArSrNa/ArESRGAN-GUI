@@ -37,26 +37,6 @@ $:
       stages:
         - <<: *install
 
-  push:
-    sync:
-      runner:
-        cpus: 2
-      services:
-        - docker
-      imports:
-        - https://cnb.cool/arsrna/env/-/blob/main/git.yaml
-      stages:
-        - name: sync to github
-          image: tencentcom/git-sync
-          settings:
-            target_url: https://github.com/ArSrNa/ArESRGAN-GUI.git
-            auth_type: https
-            username: ${GIT_USERNAME}
-            password: ${GIT_ACCESS_TOKEN}
-            git_email: "root@arsrna.cn"
-            force: true
-
-master:
   web_trigger_build_linux:
     - runner:
         cpus: 32
@@ -87,3 +67,23 @@ master:
         - <<: *install
         - <<: *build
         - <<: *upload_cos
+
+"**":
+  push:
+    sync:
+      runner:
+        cpus: 2
+      services:
+        - docker
+      imports:
+        - https://cnb.cool/arsrna/env/-/blob/main/git.yaml
+      stages:
+        - name: sync to github
+          image: tencentcom/git-sync
+          settings:
+            target_url: https://github.com/ArSrNa/ArESRGAN-GUI.git
+            auth_type: https
+            username: ${GIT_USERNAME}
+            password: ${GIT_ACCESS_TOKEN}
+            git_email: "root@arsrna.cn"
+            force: true
