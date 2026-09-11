@@ -48,7 +48,7 @@ export const Navbar1 = ({
     { title: "首页", url: "/", icon: <HomeIcon className="size-4" /> },
     {
       title: "常见问题",
-      url: "/faq",
+      url: "https://arsrna-it.feishu.cn/docx/ZV3Udb8ZBotFytxfqs8ciG2YnQb?from=from_copylink",
       icon: <CircleQuestionMarkIcon className="size-4" />,
     },
     {
