@@ -1,7 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import fs from "fs-extra";
 import path from "path";
-import crypto from "crypto";
 import os from "node:os";
 
 import "./esrgan";
@@ -155,34 +154,6 @@ ipcMain.handle("open-win", (_, arg) => {
 
 const isDebug =
   process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
-
-ipcMain.handle("getAsarHash", async () => {
-  if (process.env.NODE_ENV === "development") {
-    return null;
-  }
-  const type = os.type() === "Darwin" ? "macos" : "windows";
-
-  try {
-    // Electron intercepts fs access to app.asar (treats it as an archive),
-    // so temporarily disable asar support to read the raw file.
-    // This must match how release.ts hashes the built app.asar.
-    const asarPath = path.join(process.resourcesPath, "app.asar");
-    console.log("asar path:", asarPath);
-    process.noAsar = true;
-    const hash = crypto
-      .createHash("sha256")
-      .update(fs.readFileSync(asarPath))
-      .digest("hex");
-    process.noAsar = false;
-    console.log("Generated hash:", hash);
-
-    return { type, hash };
-  } catch (error) {
-    process.noAsar = false;
-    console.error("Error generating app hash:", error);
-    return { type, hash: null, error: "Failed to generate app hash" };
-  }
-});
 
 ipcMain.handle("env", () => {
   mainWindow.webContents.send("env", app.isPackaged);

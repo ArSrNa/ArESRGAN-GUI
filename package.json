@@ -1,9 +1,9 @@
 {
   "name": "esrganui",
   "productName": "ArSrNaESRGANUI",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "license": "GPL-3.0-only",
-  "description": "为ESRGAN设计的UI软件",
+  "description": "ESRGAN超分辨率软件",
   "keywords": [
     "electron",
     "boilerplate",
@@ -17,7 +17,7 @@
     "ESRGAN"
   ],
   "author": {
-    "name": "上海绫中信息技术有限公司",
+    "name": "Ar-Sr-Na",
     "email": "root@arsrna.cn",
     "url": "https://www.arsrna.cn"
   },
@@ -33,12 +33,14 @@
   },
   "main": "dist-electron/main/index.js",
   "scripts": {
-    "win": "chcp 65001&&vite",
+    "win": "chcp 65001 && vite",
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "hash": "tsx release.ts"
+    "release:metadata": "bun run release.ts",
+    "upload:cos": "bun run scripts/upload-cos.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -53,6 +55,7 @@
     "next-themes": "^0.4.6",
     "react-dropzone": "^14.3.8",
     "react-medium-image-zoom": "^5.4.0",
+    "semver": "^7.8.5",
     "sonner": "^2.0.7"
   },
   "devDependencies": {
@@ -65,11 +68,13 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/semver": "^7.8.0",
     "@vitejs/plugin-react": "^5.1.4",
     "aegis-web-sdk": "^1.37.6",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cos-nodejs-sdk-v5": "^3.0.0",
     "electron": "^40.6.0",
     "electron-builder": "^24.13.3",
     "lucide-react": "^0.554.0",

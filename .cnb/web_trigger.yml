@@ -1,0 +1,14 @@
+branch:
+  # 云原生开发:一个按钮 + 下拉框选 app,点击直接进开发环境并自动启动所选 app
+  - buttons:
+      - name: 构建 Linux
+        description: 构建 Linux 版本
+        event: web_trigger_build_linux
+
+      - name: 构建 macOS 版本
+        description: 构建 macOS 版本
+        event: web_trigger_build_mac
+
+      - name: 构建 Windows 版本
+        description: 构建 Windows 版本
+        event: web_trigger_build_windows

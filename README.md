@@ -1,143 +1,43 @@
-# ArSrNaUI ESRGAN图像超分
+# ESRGAN图像超分辨率软件
 
-## 构建
+# 构建
 
 平台：node 25 ；bun包管理器1.3.1；使用macOS15开发
 
-vite electron框架，比以前的react electron启动快91%
+vite electron框架，比以前的react electron启动快**91%**
 
-### clone
+## clone
 
-````shell
+```bash
 git clone https://cnb.cool/arsrna/esrgan-app
-````
+```
 
-### 安装依赖
+## 安装依赖
 
-````shell
+```bash
 cd esrgan-app
 bun i
-````
+```
 
-*中国大陆用户注意：由于dddd的原因，安装过程不一定顺利，因为electron某些依赖使用镜像会报错，所以建议不要换镜像下载，使用默认镜像即可*
+_中国大陆用户注意：由于dddd的原因，安装过程不一定顺利，因为electron某些依赖使用镜像会报错，所以建议不要换镜像下载，使用默认镜像即可_
 
-### 启动
+# 启动
 
-````shell
+```shell
 bun dev
-````
+```
 
-## 实现方式与原理
+## 更新检查
 
-*以下内容比较久远，不管用了，最新的文档我还懒得写*
+当前版本直接读取根目录 `package.json` 的 `version` 字段，无需在 `.env` 中重复配置。
+检查更新时请求 `https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN`，
+按 semver 规则比较响应中的 `version` 与当前版本，仅在远端版本更高时提示更新，并使用 `link` 作为下载地址。
+支持预发布版本（例如 `7.1.0-beta.1`），构建元数据不影响版本优先级；不再依赖 ASAR hash。
 
-### 前后端通讯
+发布前只需更新 `package.json` 的 `version`，更新检查和安装包命名共用此版本号。
+运行 `bun run release:metadata` 可输出当前 `version`；现有更新检查接口使用 `version` 字段承载此值。
+版本号由 Vite 在构建时写入应用，修改后需重新构建；开发环境也可检查更新。
 
-前端通过ipc消息，ipcMain与ipcRender之间前后端实时交流
+# 意见反馈
 
-前端方式如下
-
-````js
-import { ipcRenderer } from 'electron';
-ipcRenderer.send(channel,'我永远喜欢菲谢尔');
-
-ipcRenderer.on(channel,(evt,msg)=>{
-    // 接收后端信息
-    // msg 即为后端消息
-})
-````
-
-后端使用express与express-ws处理前端请求
-后端处理如下
-
-````js
-import { ipcMain } from 'electron';
-
-ipcMain.on(channel,(evt,msg)=>{
-    // msg为前端消息
-})
-
-mainWindow.webContents.send(channel,msg)
-````
-
-### Child_Process
-
-node中有这么一个模块，可以调用子进程，通过这个方式实现调用编译后的ESRGAN
-
-````js
-var spawn = require('child_process').spawn;
-
-esrgan = spawn(esrganPath,[
-    '-i',file,
-    '-o',`${file}_optimization.png`,
-    '-n',model
-  ]); 
-````
-
-简单地封装起来
-
-````js
-function optimization(data){
-  var file = data.file;
-  var model = data.model;
-  esrgan = spawn(esrganPath,[
-    '-i',file,
-    '-o',`${file}_optimization.png`,
-    '-n',model
-  ]); 
-  esrgan.stderr.on('data', function (data) {
-    console.log(data.toString('utf8'));
-    var progressSet = parseInt(data)/100
-    if(typeof progressSet=='number') mainWindow.setProgressBar(progressSet)
-    mainWindow.webContents.send('esrgan',{
-      type:'log',
-      data:data.toString('utf8')
-    });
-    }); 
-    esrgan.on('exit', function (code, signal) { 
-    mainWindow.setProgressBar(-1)
-    console.log('child process eixt ,exit:' + code); 
-    mainWindow.webContents.send('esrgan',{
-      type:'exit',
-      code:'exit'+code
-    });
-    return code
-    });
-  }
-````
-
-# 问题反馈
-
-您可以在这个页面的 issues 提交您的疑问，建议附上日志，控制台（Ctrl+Shift+I调出 或 点击页面上栏的调试控制台）截图
-
-或者到 https://support.qq.com/product/419220 进行业务层面的反馈
-
-# 当您阅读到此时
-
-这是我第一次做electron的应用，存在无数的不足，现在已经一年了，更新了不下10个版本，因为大家的支持与信任让我们有勇气，有理由继续做下去，虽然核心部分不是我所开发的，但作为“第一次”还是有点纪念意义的
-
-2022-1-26 ~ 2023-2-5
-
-我把这个应用发布在b站的时候，未曾想过有如此多关注度，也从没想过这么多的下载量，以至于连夜买了500G的资源包仍然超量
-
-我们开放了用于反馈的通道，本以为只有自己能发现问题，结果确实大家先发现了许多bug，让这个应用愈发完美。
-
-我们也积极响应所有用户的提问，积极修复问题，几乎在1周内就能实现。
-
-![1675598932040](image/README/1675598932040.png)
-![1675598941582](image/README/1675598941582.png)
-![1675598949561](image/README/1675598949561.png)
-![1675598956066](image/README/1675598956066.png)
-![1675598960842](image/README/1675598960842.png)
-![1675598968212](image/README/1675598968212.png)
-
-大家给了我灵感，减轻了我排查bug的负担，也因为此，我更有动力继续把应用产品做下去
-
-**在此，我诚挚地感谢所有使用本软件的用户，感谢所有为此软件做出贡献的用户，感谢您的信任与支持**
-
-# 暂时不知道还能写什么了
-
----
-
-**感谢您的支持**
-*Powered by Ar-Sr-Na*
+欢迎前往：https://support.qq.com/products/419220 提交反馈，或在此仓库Issue中提交反馈。
