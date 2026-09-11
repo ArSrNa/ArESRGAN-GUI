@@ -223,7 +223,7 @@ function TView({ form }: { form: UseFormReturn<FormDataType> }) {
           <Trash2Icon /> 清空
         </Button>
       </div>
-      <div className="flex flex-wrap gap-3 border items-center justify-center rounded-lg p-3 min-h-30 overflow-y-auto">
+      <div className="flex flex-wrap gap-3 border items-center justify-center rounded-lg p-3 min-h-60 overflow-y-auto">
         {srcs?.map((m, i) => (
           <div key={"preview_" + m} className="w-40 h-40 relative">
             {start && current <= i && (
@@ -240,12 +240,13 @@ function TView({ form }: { form: UseFormReturn<FormDataType> }) {
               className="w-full h-full object-contain border rounded-lg data-[current=true]:blur-xs"
             />
             {!start && (
-              <div className="bg-black/50 absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center">
+              <div
+                onClick={(e) => {
+                  setFiles((s) => s.toSpliced(i, 1));
+                }}
+                className="bg-black/50 cursor-pointer absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center">
                 <Trash2Icon
-                  className="right-0 bottom-0 size-4 cursor-pointer"
-                  onClick={(e) => {
-                    setFiles((s) => s.toSpliced(i, 1));
-                  }}
+                  className="right-0 bottom-0 size-4"
                   color="white"
                 />
               </div>
@@ -253,7 +254,7 @@ function TView({ form }: { form: UseFormReturn<FormDataType> }) {
           </div>
         ))}
 
-        {srcs?.length === 0 && <div>暂无图片</div>}
+        {srcs?.length === 0 && <div >暂无图片</div>}
       </div>
     </>
   );
