@@ -29,7 +29,7 @@ describe("COS 安装包选择", () => {
     await writeFile(path.join(output, "win-unpacked", "application.exe"), "app");
     await symlink(path.join(output, "ArSrNaUIESRGAN_7.1.0.exe"), path.join(output, "link_7.1.0.exe"));
     const plan = await createUploadPlan({ root, platform: "win32", arch: "x64" });
-    expect(plan.files.map(f => f.key)).toEqual(["ArSrNaUI-ESRGAN/7.1.0/windows/x64/ArSrNaUIESRGAN_7.1.0.exe"]);
+    expect(plan.files.map(f => f.key)).toEqual(["app-release/ArSrNaUI-ESRGAN/7.1.0/windows/x64/ArSrNaUIESRGAN_7.1.0.exe"]);
   });
   it("区分 macOS arm64、x64 和 universal", async () => {
     for (const suffix of ["", "-arm64", "-universal"]) await artifact(`ArSrNaUIESRGAN-7.1.0${suffix}.dmg`);

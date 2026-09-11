@@ -57,6 +57,7 @@ const extensions: Record<Platform, readonly string[]> = { windows: [".exe"], mac
 const architectures: Record<string, Architecture | undefined> = { x64: "x64", amd64: "x64", x86_64: "x64", arm64: "arm64", aarch64: "arm64", ia32: "ia32", i386: "ia32", armv7l: "armv7l", armhf: "armv7l", universal: "universal" };
 const APP_RELEASE_BUCKET_KEY = "APP_RELEASE_BUCKET";
 const APP_RELEASE_REGION_KEY = "APP_RELEASE_REGION";
+const DEFAULT_PREFIX = "app-release/ArSrNaUI-ESRGAN";
 
 export function readConfig(env: Environment): UploadConfig {
   return {
@@ -68,13 +69,13 @@ export function readConfig(env: Environment): UploadConfig {
   };
 }
 
-export async function createUploadPlan({ root = projectRoot, platform: inputPlatform = process.platform, arch: inputArch = process.arch, prefix = "ArSrNaUI-ESRGAN" }: UploadPlanOptions = {}): Promise<UploadPlan> {
+export async function createUploadPlan({ root = projectRoot, platform: inputPlatform = process.platform, arch: inputArch = process.arch, prefix = DEFAULT_PREFIX }: UploadPlanOptions = {}): Promise<UploadPlan> {
   const platform = platforms[inputPlatform];
   const arch = architectures[inputArch];
   if (!platform) throw new Error("平台必须是 windows、macos 或 linux");
   if (!arch || arch === "universal" && platform !== "macos") throw new Error("不支持的目标架构");
   if (typeof prefix !== "string" || !prefix || prefix.includes("\\") || prefix.split("/").some(p => !p || p === "." || p === "..")) {
-    throw new Error("COS_PREFIX 必须是无首尾斜杠的有效目录，例如 ArSrNaUI-ESRGAN");
+    throw new Error(`COS_PREFIX 必须是无首尾斜杠的有效目录，例如 ${DEFAULT_PREFIX}`);
   }
   const pkg: unknown = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   if (!isRecord(pkg) || typeof pkg.version !== "string" || !valid(pkg.version)) throw new Error("package.json 的 version 必须是有效 semver");
@@ -151,7 +152,7 @@ export async function main(args: string[] = process.argv.slice(2), env: Environm
     console.log("默认使用当前运行平台和架构；跨架构构建后须传入对应 --arch。预览不需要 COS 凭据。");
     return;
   }
-  const plan = await createUploadPlan({ platform: values.platform, arch: values.arch, prefix: env.COS_PREFIX || "ArSrNaUI-ESRGAN" });
+  const plan = await createUploadPlan({ platform: values.platform, arch: values.arch, prefix: env.COS_PREFIX || DEFAULT_PREFIX });
   if (values["dry-run"]) {
     for (const file of plan.files) console.log(`${file.filePath} -> ${file.key}`);
     console.log(`预览完成：${plan.files.length} 个安装包，未发送上传请求`);
