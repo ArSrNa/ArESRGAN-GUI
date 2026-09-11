@@ -1,5 +1,12 @@
+# electron 二进制及 electron-builder 依赖下载镜像（避免直连 GitHub 超时）
+.electron_mirror: &electron_mirror
+  env:
+    ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
+    ELECTRON_BUILDER_BINARIES_MIRROR: https://npmmirror.com/mirrors/electron-builder-binaries/
+
 # 基础环境
 .configuration: &configuration
+  <<: *electron_mirror
   docker:
     image: docker.cnb.cool/arsrna/dev-image/nodejs
     volumes:
@@ -64,6 +71,7 @@ master:
         namespace: group
         tags:
           - seele-macbook
+      <<: *electron_mirror
       stages:
         - <<: *install
         - <<: *build
@@ -74,6 +82,7 @@ master:
         namespace: group
         tags:
           - keqing
+      <<: *electron_mirror
       stages:
         - <<: *install
         - <<: *build
