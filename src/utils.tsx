@@ -1,5 +1,6 @@
-const { ipcRenderer } = window;
 import { toast } from "sonner";
+import { gt, valid } from "semver";
+import { version } from "../package.json";
 /**测试用数据 */
 export const mock = [
   {
@@ -22,35 +23,29 @@ export const mock = [
 
 export async function CheckUpdate() {
   try {
-    const result = await ipcRenderer.invoke("getAsarHash");
-
-    // Handle development environment or error cases
-    if (!result || result.hash === null) {
-      toast.warning("dev环境跳过检查更新");
-      return;
+    const currentVersion = version;
+    if (!currentVersion || !valid(currentVersion)) {
+      throw new Error("package.json 中的 version 不是有效的 semver 版本号");
     }
-
-    const { hash, type, error } = result;
-
-    if (error) {
-      console.error("获取asar hash失败:", error);
-      toast.error("无法获取应用版本信息，请稍后重试。" + error);
-      return;
-    }
-
-    console.log("获取到hash:", hash, "类型:", type);
-
-    let msg = await fetch(
+    const response = await fetch(
       "https://api-gz.arsrna.cn/release/appUpdate/ArESRGAN"
-    ).then((msg) => msg.json());
-    console.log(msg);
-    const needUpdate = msg.hash["windows"] !== hash;
-    const { vNumber, uTime, content, link } = msg;
-    if (needUpdate) {
+    );
+    if (!response.ok) {
+      throw new Error(`更新接口请求失败（HTTP ${response.status}）`);
+    }
+    const msg = await response.json();
+    if (typeof msg?.version !== "string" || !valid(msg.version)) {
+      throw new Error("更新接口返回的 version 不是有效的 semver 版本号");
+    }
+    const { link } = msg;
+    if (gt(msg.version, currentVersion)) {
+      if (typeof link !== "string" || new URL(link).protocol !== "https:") {
+        throw new Error("更新接口返回的下载链接无效");
+      }
       toast.success(
         <div>
           检查到新版本，请
-          <a className="text-blue-500" href={link} target="_blank">
+          <a className="text-blue-500" href={link} target="_blank" rel="noreferrer">
             点此查看更新内容并下载
           </a>
         </div>
@@ -60,6 +55,6 @@ export async function CheckUpdate() {
     }
   } catch (error) {
     console.error("检查更新时发生错误:", error);
-    toast.error("检查更新失败" + error);
+    toast.error("检查更新失败：" + (error instanceof Error ? error.message : String(error)));
   }
 }

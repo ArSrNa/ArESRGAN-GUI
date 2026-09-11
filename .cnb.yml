@@ -1,25 +1,39 @@
+# 基础环境
+.configuration: &configuration
+  docker:
+    image: docker.cnb.cool/arsrna/dev-image/nodejs
+    volumes:
+      - /root/.bun/install/cache
+
+.install: &install
+  name: install
+  script: bun i
+
+.build: &build
+  name: build
+  script: bun run build
+
+.upload_cos: &upload_cos
+  name: 发布更新到 COS
+  imports:
+    - https://cnb.cool/arsrna/env/-/blob/main/cos.yaml
+  script: bun run upload:cos
+
 $:
   vscode:
-    - imports:
-        - https://cnb.cool/arsrna/env/-/blob/main/git.yaml
-      runner:
-        cpus: 16
-      docker:
-        image: docker.cnb.cool/arsrna/dev-env/node22
-      services:
+    - services:
         - vscode
         - docker
+      runner:
+        cpus: 32
+      <<: *configuration
       stages:
-        - name: install
-          script: pnpm i
-        - name: config wakatime
-          script: cp .wakatime.cfg ~/.wakatime.cfg
+        - <<: *install
 
   push:
-    - runner:
-        cpus: 16
-      docker:
-        image: docker.cnb.cool/arsrna/dev-env/node22
+    sync:
+      runner:
+        cpus: 2
       services:
         - docker
       imports:
@@ -34,3 +48,33 @@ $:
             password: ${GIT_ACCESS_TOKEN}
             git_email: "root@arsrna.cn"
             force: true
+
+master:
+  web_trigger_build_linux:
+    - runner:
+        cpus: 32
+      <<: *configuration
+      stages:
+        - <<: *install
+        - <<: *build
+        - <<: *upload_cos
+
+  web_trigger_build_mac:
+    - runner:
+        namespace: group
+        tags:
+          - seele-macbook
+      stages:
+        - <<: *install
+        - <<: *build
+        - <<: *upload_cos
+
+  web_trigger_build_windows:
+    - runner:
+        namespace: group
+        tags:
+          - keqing
+      stages:
+        - <<: *install
+        - <<: *build
+        - <<: *upload_cos

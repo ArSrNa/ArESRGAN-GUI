@@ -1,18 +1,9 @@
-import os from 'os';
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
+import { valid } from "semver";
+import { version } from "./package.json";
 
-const { version } = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+if (!version || !valid(version)) {
+  throw new Error("package.json 中的 version 不是有效的 semver 版本号");
+}
 
-const getHash = (str: string) => {
-    return crypto.createHash('sha256').update(str).digest('hex');
-};
-const type = os.type();
-const asarPath = type === "Darwin"
-    ? path.join('release', version, '/mac-arm64/ArSrNaUIESRGAN.app/Contents/Resources/app.asar')
-    : path.join(__dirname, "release", version, "/win-unpacked/resources/app.asar");
-
-
-const hash = getHash(asarPath);
-console.log({ asarPath, hash });
+console.log(JSON.stringify({ version }, null, 2));
+console.log("请将此 version 写入更新接口（api-gz.arsrna.cn），并设置对应的 link 下载链接");

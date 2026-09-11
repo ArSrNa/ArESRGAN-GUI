@@ -1,7 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, Menu } from "electron";
 import fs from "fs-extra";
 import path from "path";
-import crypto from "crypto";
 import os from "node:os";
 
 import "./esrgan";
@@ -155,40 +154,6 @@ ipcMain.handle("open-win", (_, arg) => {
 
 const isDebug =
   process.env.NODE_ENV === "development" || process.env.DEBUG_PROD === "true";
-
-ipcMain.handle("getAsarHash", async () => {
-  if (process.env.NODE_ENV === "development") {
-    return null;
-  }
-  const type = os.type() === "Darwin" ? "macos" : "windows";
-
-  console.log("process.resourcesPath:", process.resourcesPath);
-  console.log("process.cwd():", process.cwd());
-  console.log("app.isPackaged:", app.isPackaged);
-  console.log("app.getVersion():", app.getVersion());
-
-  try {
-    // Since we can't read the asar file from within the asar archive,
-    // we'll use the application version and other identifiers to create a hash
-    const version = app.getVersion();
-    const platform = os.platform();
-    const arch = os.arch();
-    const appName = app.getName();
-
-    // Create a unique identifier based on app info
-    const appInfo = `${appName}-${version}-${platform}-${arch}`;
-    console.log("App info for hash:", appInfo);
-
-    // Generate a hash from the app info
-    const hash = crypto.createHash("sha256").update(appInfo).digest("hex");
-    console.log("Generated hash:", hash);
-
-    return { type, hash };
-  } catch (error) {
-    console.error("Error generating app hash:", error);
-    return { type, hash: null, error: "Failed to generate app hash" };
-  }
-});
 
 ipcMain.handle("env", () => {
   mainWindow.webContents.send("env", app.isPackaged);

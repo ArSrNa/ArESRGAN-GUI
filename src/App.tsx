@@ -45,8 +45,6 @@ function Main() {
           Powered by Ar-Sr-Na
           <Separator orientation="vertical" />
           上海绫中信息技术有限公司
-          <Separator orientation="vertical" />
-          GNU协议 请勿用于商业用途！
         </div>
       </div>
     </ErrorBoundary>
