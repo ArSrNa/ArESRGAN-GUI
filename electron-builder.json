@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/v24.13.3/packages/app-builder-lib/scheme.json",
   "productName": "ArSrNaUIESRGAN",
   "appId": "arsrnauiesrgan",
   "copyright": "上海绫中信息技术有限公司",
@@ -42,7 +42,7 @@
     "installerHeaderIcon": "./icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "ArUI ESRGAN 图像版",
+    "shortcutName": "ArSrNa ESRGAN 图像版",
     "artifactName": "${productName}_${version}.${ext}"
   },
   "directories": {
