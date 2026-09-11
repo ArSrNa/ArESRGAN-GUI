@@ -38,7 +38,7 @@ function Main() {
             </Routes>
           </ErrorBoundary>
         </div>
-        <div className="text-center flex items-center justify-center gap-2 py-2 text-sm text-gray-600">
+        <div className="text-center flex items-center justify-center gap-2 py-2 text-sm text-gray-600 mt-5">
           Powered by Ar-Sr-Na
           <Separator orientation="vertical" />
           上海绫中信息技术有限公司
