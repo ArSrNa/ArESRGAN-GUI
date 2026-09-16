@@ -1,5 +1,15 @@
 # ESRGAN图像超分辨率软件
 
+## 文档
+
+开发者文档位于 [docs/](./docs/README.md)：
+
+- [架构说明](./docs/architecture.md)：技术栈、进程模型、目录结构与核心数据流
+- [开发指南](./docs/development.md)：环境准备、启动、调试与常见问题
+- [测试指南](./docs/testing.md)：运行 `bun test`，了解覆盖范围与编写约定
+- [IPC 接口](./docs/ipc.md)：主进程 / preload / 渲染层通信接口
+- [构建与发布](./docs/build-and-release.md)：打包、COS 上传、更新检查与发版流程
+
 # 构建
 
 平台：node 25 ；bun包管理器1.3.1；使用macOS15开发
