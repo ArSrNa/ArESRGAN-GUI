@@ -20,7 +20,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "electron", "scripts"],
+  "include": ["src", "electron", "scripts", "release.test.ts", "vitest.setup.ts"],
   "references": [
     {
       "path": "./tsconfig.node.json"

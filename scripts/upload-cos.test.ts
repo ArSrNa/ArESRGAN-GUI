@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createUploadPlan, readConfig, uploadPlan } from "./upload-cos";
+import { createUploadPlan, main, readConfig, uploadPlan } from "./upload-cos";
 
 let root: string;
 let output: string;
@@ -123,5 +123,52 @@ describe("COS 配置和 SDK 调用", () => {
     const client = { uploadFile: vi.fn((_params, callback) => callback({ code: "AccessDenied", message: "SECRET", headers: { Authorization: "SECRET" } })) };
     await expect(uploadPlan(plan, { Bucket: "test-123", Region: "ap-guangzhou" }, client, vi.fn())).rejects.toThrow(/AccessDenied/);
     expect(client.uploadFile).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("COS 上传参数校验", () => {
+  it("拒绝未知平台", async () => {
+    await expect(createUploadPlan({ root, platform: "solaris" })).rejects.toThrow("平台必须是");
+  });
+  it("拒绝不支持的架构", async () => {
+    await expect(createUploadPlan({ root, platform: "darwin", arch: "mips" })).rejects.toThrow("不支持的目标架构");
+  });
+  it("universal 只允许 macOS", async () => {
+    await expect(createUploadPlan({ root, platform: "windows", arch: "universal" })).rejects.toThrow("不支持的目标架构");
+  });
+  it.each([
+    "app-release/",
+    "/app-release",
+    "app-release//beta",
+    "app/../release",
+    "app\\release",
+    "",
+  ])("拒绝非法前缀 %j", async (prefix) => {
+    await expect(createUploadPlan({ root, platform: "win32", arch: "x64", prefix })).rejects.toThrow("COS_PREFIX");
+  });
+  it("接受多级合法前缀", async () => {
+    await artifact("App_7.1.0.exe");
+    const plan = await createUploadPlan({ root, platform: "win32", arch: "x64", prefix: "releases/app/latest" });
+    expect(plan.files[0].key).toBe("releases/app/latest/7.1.0/windows/x64/App_7.1.0.exe");
+  });
+  it("缺少 SecretId / SecretKey 时报告缺失的变量名", () => {
+    expect(() => readConfig({ SECRET_ID: "id", COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou" })).toThrow("SECRET_KEY");
+    expect(() => readConfig({ SECRET_KEY: "key", COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou" })).toThrow("SECRET_ID");
+  });
+  it("透传临时密钥 SESSION_TOKEN", () => {
+    expect(readConfig({ SECRET_ID: "id", SECRET_KEY: "key", SESSION_TOKEN: "token", COS_BUCKET: "test-123", COS_REGION: "ap-guangzhou" })).toMatchObject({ SecurityToken: "token" });
+  });
+});
+
+describe("COS 上传 CLI", () => {
+  it("--help 输出用法且不读取构建产物", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => { });
+    await main(["--help"], {});
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("bun run upload:cos"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("--dry-run"));
+    log.mockRestore();
+  });
+  it("非法平台参数直接失败", async () => {
+    await expect(main(["--platform", "solaris"], {})).rejects.toThrow("平台必须是");
   });
 });
