@@ -1,6 +1,6 @@
 [package]
 name = "esrgan-app"
-version = "7.0.0"
+version = "8.0.0"
 description = "为 ESRGAN 设计的桌面 UI"
 authors = ["上海绫中信息技术有限公司"]
 license = "GPL-3.0-only"
