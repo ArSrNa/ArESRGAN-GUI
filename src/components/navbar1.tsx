@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import logoSrc from "@/logo.png";
 
-const { ipcRenderer } = window;
+import { openDevtools } from "@/lib/desktop";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -69,7 +69,11 @@ export const Navbar1 = ({
           title: "调试控制台",
           description: "查看调试控制台工具",
           icon: <BugPlayIcon className="size-5 shrink-0" />,
-          onClick: () => ipcRenderer.send("openDevTools"),
+          onClick: () => {
+            openDevtools().catch((error) =>
+              console.error("打开调试控制台失败:", error)
+            );
+          },
         },
         {
           title: "检查更新",

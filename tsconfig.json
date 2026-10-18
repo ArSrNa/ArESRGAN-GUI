@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": false,
@@ -17,10 +21,18 @@
     "jsx": "react-jsx",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["src", "electron", "scripts", "release.test.ts", "vitest.setup.ts"],
+  "include": [
+    "src",
+    "scripts",
+    "release.ts",
+    "release.test.ts",
+    "vitest.setup.ts"
+  ],
   "references": [
     {
       "path": "./tsconfig.node.json"
