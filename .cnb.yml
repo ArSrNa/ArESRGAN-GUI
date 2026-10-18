@@ -1,7 +1,7 @@
 # 基础环境
 .configuration: &configuration
   docker:
-    image: docker.cnb.cool/arsrna/dev-image/nodejs
+    image: docker.cnb.cool/arsrna/dev-image/go
     volumes:
       - /root/.bun/install/cache
 
@@ -25,7 +25,7 @@ $:
         - vscode
         - docker
       runner:
-        cpus: 32
+        cpus: 64
       <<: *configuration
       stages:
         - <<: *install
