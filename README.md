@@ -1,6 +1,8 @@
 # ArSrNaUI ESRGAN图像超分辨率软件
 
-桌面前端使用 Tauri 2、React、TypeScript 与 Vite，超分算法由内置的 `realesrgan-ncnn-vulkan` 二进制执行。
+桌面前端使用 Tauri 2、React、TypeScript 与 Vite，超分算法由内置的 `realesrgan-ncnn-vulkan` 二进制执行。支持 Windows x64 与 macOS Apple Silicon（arm64），不提供 macOS Intel 或 Universal 版本。
+
+![](image/index.avif)
 
 ## 构建本软件
 
@@ -23,10 +25,12 @@ bun install
 
 ````shell
 bun run app:dev      # 准备内置资源 + 启动 Vite + Tauri 窗口
-bun run app:build    # 安装包产物在 src-tauri/target/release/bundle/
+bun run app:build    # 按当前平台构建；macOS 仅支持 arm64
+# macOS 发布命令：
+bun run app:build --target aarch64-apple-darwin --bundles dmg
 ````
 
-`bun run app:dev` 会先执行 `scripts/prepare-tauri-assets.mjs`：把 `public/realsgan` 下的推理二进制按目标 triple 复制到 `src-tauri/binaries/`，并把模型与 DLL 复制到 `src-tauri/resources/`。这两个目录属于构建产物，已被 git 忽略。
+`bun run app:dev` 会先执行 `scripts/prepare-tauri-assets.mjs`：按当前系统准备 `public/realsgan` 下的推理程序：macOS 使用 lipo 提取纯 arm64 sidecar，Windows 使用 x64 exe；模型与 DLL 复制到 `src-tauri/resources/`。这两个目录属于构建产物，已被 git 忽略。
 
 | 命令 | 说明 |
 | --- | --- |
@@ -92,12 +96,14 @@ command
 - 模型与 Windows DLL 作为附加资源打包，运行时通过 Tauri 路径接口定位，不依赖源码目录或工作目录。
 - 输出重名时自动改名为 `a_opt(1).png`，不覆盖已有文件。
 
+macOS 安装包位于 `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/`；原生默认目标构建位于 `src-tauri/target/release/bundle/`。上传脚本同时识别这两种布局，并排除旧 Intel / Universal 安装包。
+
 ## 项目文档
 
 - [文档索引](docs/README.md)
 - [测试指南](docs/testing.md)
 
-现有 macOS / Windows 手动构建按钮已改为 Tauri 安装包构建并沿用 COS 上传；Runner 需要预先安装 Rust 与平台构建工具。当前没有 Linux 推理二进制，因此不提供 Linux 安装包构建入口。
+现有 macOS / Windows 手动构建按钮已改为 Tauri 安装包构建并沿用 COS 上传；macOS 构建固定为 `aarch64-apple-darwin`，仅上传 arm64 安装包；Runner 需要预先安装 Rust（rustup）与平台构建工具。当前没有 Linux 推理二进制，因此不提供 Linux 安装包构建入口。
 
 ## 迁移文档
 

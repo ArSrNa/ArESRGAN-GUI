@@ -5,11 +5,12 @@
  * - src-tauri/binaries/  Tauri sidecar，文件名必须带目标 triple 后缀
  * - src-tauri/resources/ Tauri 附加资源，运行时随安装包分发
  *
- * 该脚本是幂等的：目标文件已存在且大小一致时跳过复制。
+ * 模型和 DLL 在目标文件大小一致时跳过复制；macOS sidecar 提取为纯 arm64。
  * 产物目录被 .gitignore 忽略，仓库内的唯一真源仍是 public/realsgan。
  */
-import { cp, chmod, mkdir, readdir, stat } from "node:fs/promises";
+import { cp, chmod, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,19 +19,16 @@ const sourceDir = join(root, "public", "realsgan");
 const binariesDir = join(root, "src-tauri", "binaries");
 const resourcesDir = join(root, "src-tauri", "resources");
 
-/** @type {{from: string, to: string, executable?: boolean}[]} */
+/** @type {{platform: string, from: string, to: string, executable?: boolean}[]} */
 const binaries = [
   {
+    platform: "darwin",
     from: "macos_realesrgan-ncnn-vulkan",
     to: "realesrgan-ncnn-vulkan-aarch64-apple-darwin",
     executable: true,
   },
   {
-    from: "macos_realesrgan-ncnn-vulkan",
-    to: "realesrgan-ncnn-vulkan-x86_64-apple-darwin",
-    executable: true,
-  },
-  {
+    platform: "win32",
     from: "realesrgan-ncnn-vulkan.exe",
     to: "realesrgan-ncnn-vulkan-x86_64-pc-windows-msvc.exe",
   },
@@ -64,12 +62,33 @@ async function main() {
   let copied = 0;
   let skipped = 0;
 
-  for (const binary of binaries) {
+  const selected = binaries.filter(binary => binary.platform === process.platform);
+  if (selected.length === 0) {
+    throw new Error("仅支持 macOS Apple Silicon 和 Windows x64 的资源准备");
+  }
+
+  // 清理旧版本生成的 Intel sidecar，防止开发目录继续保留该目标。
+  await rm(join(binariesDir, "realesrgan-ncnn-vulkan-x86_64-apple-darwin"), { force: true });
+
+  for (const binary of selected) {
     const src = join(sourceDir, binary.from);
     if (!existsSync(src)) {
       throw new Error(`缺少推理二进制：${src}`);
     }
     const dest = join(binariesDir, binary.to);
+    if (binary.platform === "darwin") {
+      const archs = execFileSync("lipo", ["-archs", src], { encoding: "utf8" }).trim().split(/\s+/);
+      if (!archs.includes("arm64")) throw new Error("内置 macOS 推理程序缺少 arm64 架构");
+      if (archs.length > 1) {
+        await mkdir(binariesDir, { recursive: true });
+        const temporary = `${dest}.tmp`;
+        execFileSync("lipo", [src, "-thin", "arm64", "-output", temporary]);
+        await chmod(temporary, 0o755);
+        await rename(temporary, dest);
+        copied += 1;
+        continue;
+      }
+    }
     if (await copyIfNeeded(src, dest, binary.executable)) copied += 1;
     else skipped += 1;
   }

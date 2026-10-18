@@ -77,6 +77,7 @@ export async function createUploadPlan({ root = projectRoot, platform: inputPlat
   const arch = inputArch === undefined ? undefined : architectures[inputArch];
   if (!platform) throw new Error("平台必须是 windows、macos 或 linux");
   if (inputArch !== undefined && (!arch || arch === "universal" && platform !== "macos")) throw new Error("不支持的目标架构");
+  if (platform === "macos" && arch !== undefined && arch !== "arm64") throw new Error("macOS 仅支持 Apple Silicon（arm64）产物");
   if (typeof prefix !== "string" || !prefix || prefix.includes("\\") || prefix.split("/").some(p => !p || p === "." || p === "..")) {
     throw new Error(`COS_PREFIX 必须是无首尾斜杠的有效目录，例如 ${DEFAULT_PREFIX}`);
   }
@@ -132,6 +133,7 @@ export async function createUploadPlan({ root = projectRoot, platform: inputPlat
       if (!named) continue;
       fileArch = named;
     }
+    if (platform === "macos" && fileArch !== "arm64") continue;
     if (arch && fileArch !== arch) continue;
     const filePath = path.join(outputDir, entry.name);
     const { size } = await stat(filePath);
@@ -178,8 +180,9 @@ export async function main(args: string[] = process.argv.slice(2), env: Environm
     }
   });
   if (values.help) {
-    console.log("bun run upload:cos [--platform windows|macos|linux] [--arch x64|arm64|ia32|armv7l|universal] [--dry-run]");
+    console.log("bun run upload:cos [--platform windows|macos|linux] [--arch x64|arm64|ia32|armv7l] [--dry-run]");
     console.log("默认使用当前运行平台；不传 --arch 时扫描构建目录，按产物文件名自动识别架构并上传该版本的全部安装包。");
+    console.log("macOS 仅选择 arm64 / aarch64 安装包，不发布 Intel 或 Universal 产物。");
     console.log("例如 macOS 上的 ArSrNaUIESRGAN-7.1.0-arm64.dmg 会识别为 arm64。预览不需要 COS 凭据。");
     return;
   }
