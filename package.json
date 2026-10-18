@@ -29,7 +29,7 @@
     "preview": "vite preview",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "release:metadata": "bun run release.ts",
-    "upload:cos": "bun run scripts/upload-cos.ts",
+    "upload:cos": "tsx scripts/upload-cos.ts",
     "test": "vitest run",
     "assets": "node scripts/prepare-tauri-assets.mjs",
     "tauri": "tauri",
