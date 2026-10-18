@@ -20,12 +20,37 @@ pub struct UpdateInfo {
 
 #[derive(Deserialize)]
 struct ReleasePayload {
-    #[serde(rename = "vNumber", alias = "version", default)]
+    /// 线上接口同时下发 vNumber 与 version（历史遗留），两者不能共用 alias，否则会触发 duplicate field
+    #[serde(rename = "vNumber", default)]
+    v_number: Option<String>,
+    #[serde(rename = "version", default)]
     version: Option<String>,
     #[serde(default)]
     content: Option<serde_json::Value>,
     #[serde(default)]
     link: Option<String>,
+}
+
+impl ReleasePayload {
+    /// 以 vNumber 为准，缺失或为空时回退到 version
+    fn release_version(&self) -> Option<&str> {
+        [self.v_number.as_deref(), self.version.as_deref()]
+            .into_iter()
+            .flatten()
+            .map(str::trim)
+            .find(|value| !value.is_empty())
+    }
+}
+
+/// reqwest 的 Display 会吞掉底层原因，展开 source 链便于定位响应或网络问题
+fn error_detail(error: &(dyn std::error::Error + 'static)) -> String {
+    let mut message = error.to_string();
+    let mut source = error.source();
+    while let Some(cause) = source {
+        message.push_str(&format!("：{cause}"));
+        source = cause.source();
+    }
+    message
 }
 
 /// 手动检查更新：拉取线上版本号并按 semver 与本地版本比较。
@@ -54,7 +79,7 @@ pub async fn check_update(app: AppHandle) -> Result<UpdateInfo, String> {
         .get(UPDATE_ENDPOINT)
         .send()
         .await
-        .map_err(|error| format!("检查更新失败：{error}"))?;
+        .map_err(|error| format!("检查更新失败：{}", error_detail(&error)))?;
 
     if !response.status().is_success() {
         return Err(format!(
@@ -66,14 +91,14 @@ pub async fn check_update(app: AppHandle) -> Result<UpdateInfo, String> {
     let payload: ReleasePayload = response
         .json()
         .await
-        .map_err(|error| format!("检查更新失败：响应格式异常（{error}）"))?;
+        .map_err(|error| format!("检查更新失败：响应格式异常（{}）", error_detail(&error)))?;
 
-    let Some(raw) = payload.version else {
+    let Some(raw) = payload.release_version() else {
         return Err("检查更新失败：响应中缺少版本号".to_string());
     };
 
     let latest =
-        parse_version(&raw).ok_or_else(|| format!("检查更新失败：无法解析版本号 {raw}"))?;
+        parse_version(raw).ok_or_else(|| format!("检查更新失败：无法解析版本号 {raw}"))?;
     let has_update = latest.cmp_precedence(&current).is_gt();
 
     Ok(UpdateInfo {
@@ -101,7 +126,31 @@ fn content_text(value: Option<serde_json::Value>) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_version;
+    use super::{parse_version, ReleasePayload};
+
+    /// 线上真实响应：vNumber 与 version 同时存在
+    const LIVE_PAYLOAD: &str = r#"{"vNumber":"7.1.0","version":"7.1.0","tag":"Release","rName":"Release","hash":{"macos":"1113187540","windows":"111e43421b"},"count":104,"uTime":"2026-9-11","link":"https://www.arsrna.cn/app/esrgan/#download","content":"更改更新检查逻辑，支持Linux系统使用","history":[{"time":"2025-11-20 19:59","content":"使用shadcn替换antd"}],"filename":{"macos":"a.dmg","windows":"a.exe","linux":{"AppImage":"a.AppImage","snap":"a.snap"}}}"#;
+
+    #[test]
+    fn parses_live_payload_with_both_version_fields() {
+        let payload: ReleasePayload = serde_json::from_str(LIVE_PAYLOAD).unwrap();
+        assert_eq!(payload.release_version(), Some("7.1.0"));
+    }
+
+    #[test]
+    fn falls_back_to_legacy_version_field() {
+        let payload: ReleasePayload = serde_json::from_str(r#"{"version":"6.0.1"}"#).unwrap();
+        assert_eq!(payload.release_version(), Some("6.0.1"));
+    }
+
+    #[test]
+    fn prefers_v_number_and_skips_blank_values() {
+        let payload: ReleasePayload =
+            serde_json::from_str(r#"{"vNumber":"  ","version":"6.0.2"}"#).unwrap();
+        assert_eq!(payload.release_version(), Some("6.0.2"));
+        let none: ReleasePayload = serde_json::from_str("{}").unwrap();
+        assert_eq!(none.release_version(), None);
+    }
 
     #[test]
     fn parses_release_versions() {

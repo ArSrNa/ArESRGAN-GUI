@@ -2,6 +2,8 @@
 
 桌面前端使用 Tauri 2、React、TypeScript 与 Vite，超分算法由内置的 `realesrgan-ncnn-vulkan` 二进制执行。支持 Windows x64 与 macOS Apple Silicon（arm64），不提供 macOS Intel 或 Universal 版本。
 
+![](image/index.avif)
+
 ## 构建本软件
 
 ### 前置条件
