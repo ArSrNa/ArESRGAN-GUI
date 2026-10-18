@@ -39,9 +39,12 @@ $:
         - <<: *install
         - name: 检查 Rust 工具链
           script: cargo --version
+        - name: 准备 Apple Silicon 编译目标
+          script: rustup target add aarch64-apple-darwin
         - <<: *build
-          script: bun run app:build --bundles dmg
+          script: bun run app:build --target aarch64-apple-darwin --bundles dmg
         - <<: *upload_cos
+          script: bun run upload:cos --platform macos --arch arm64
 
   web_trigger_build_windows:
     - runner:

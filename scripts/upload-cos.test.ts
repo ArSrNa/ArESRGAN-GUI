@@ -25,12 +25,19 @@ describe("COS 安装包选择", () => {
     await mkdir(output, { recursive: true });
     await writeFile(path.join(output, name), "installer");
   }
-  it("识别 Tauri 原生和指定架构构建的 DMG", async () => {
+  it("仅选择 Apple Silicon DMG，忽略旧 Intel 与 Universal 产物", async () => {
     await tauriArtifact("release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_aarch64.dmg");
     await tauriArtifact("x86_64-apple-darwin/release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_x64.dmg");
+    await tauriArtifact("release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_universal.dmg");
     const plan = await createUploadPlan({ root, platform: "darwin" });
-    expect(plan.files.map(file => file.arch).sort()).toEqual(["arm64", "x64"]);
+    expect(plan.files.map(file => file.arch)).toEqual(["arm64"]);
     expect(plan.files.every(file => file.filePath.includes("src-tauri"))).toBe(true);
+  });
+  it("识别显式 aarch64 目标目录中的 Apple Silicon 产物", async () => {
+    await tauriArtifact("aarch64-apple-darwin/release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_aarch64.dmg");
+    const plan = await createUploadPlan({ root, platform: "macos", arch: "arm64" });
+    expect(plan.files).toHaveLength(1);
+    expect(plan.files[0].key).toContain("/macos/arm64/");
   });
   it("识别 Tauri NSIS 的架构与 setup 后缀", async () => {
     await tauriArtifact("release/bundle/nsis", "ArSrNaUIESRGAN_7.1.0_x64-setup.exe");
@@ -51,13 +58,11 @@ describe("COS 安装包选择", () => {
     const plan = await createUploadPlan({ root, platform: "win32", arch: "x64" });
     expect(plan.files.map(f => f.key)).toEqual(["app-release/ArSrNaUI-ESRGAN/7.1.0/windows/x64/ArSrNaUIESRGAN_7.1.0.exe"]);
   });
-  it("区分 macOS arm64、x64 和 universal", async () => {
+  it("旧版产物目录也只发布 macOS arm64", async () => {
     for (const suffix of ["", "-arm64", "-universal"]) await artifact(`ArSrNaUIESRGAN-7.1.0${suffix}.dmg`);
-    for (const arch of ["x64", "arm64", "universal"]) {
-      const plan = await createUploadPlan({ root, platform: "darwin", arch });
-      expect(plan.files).toHaveLength(1);
-      expect(plan.files[0].key).toContain(`/macos/${arch}/`);
-    }
+    const plan = await createUploadPlan({ root, platform: "darwin", arch: "arm64" });
+    expect(plan.files).toHaveLength(1);
+    expect(plan.files[0].key).toContain("/macos/arm64/");
   });
   it("未指定 --arch 时按文件名自动识别架构", async () => {
     await artifact("ArSrNaUIESRGAN-7.1.0.dmg");
@@ -66,11 +71,9 @@ describe("COS 安装包选择", () => {
     await artifact("ArSrNaUIESRGAN-7.0.0-arm64.dmg");
     const plan = await createUploadPlan({ root, platform: "darwin" });
     expect(plan.arch).toBeUndefined();
-    expect(plan.files.map(f => f.arch).sort()).toEqual(["arm64", "universal", "x64"]);
+    expect(plan.files.map(f => f.arch)).toEqual(["arm64"]);
     expect(plan.files.map(f => f.key).sort()).toEqual([
       "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/arm64/ArSrNaUIESRGAN-7.1.0-arm64.dmg",
-      "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/universal/ArSrNaUIESRGAN-7.1.0-universal.dmg",
-      "app-release/ArSrNaUI-ESRGAN/7.1.0/macos/x64/ArSrNaUIESRGAN-7.1.0.dmg",
     ]);
   });
   it("未指定 --arch 时仍上传不含架构后缀的 Windows 安装包", async () => {
@@ -79,9 +82,14 @@ describe("COS 安装包选择", () => {
     expect(plan.files).toHaveLength(1);
     expect(plan.files[0].key).toMatch(/^app-release\/ArSrNaUI-ESRGAN\/7\.1\.0\/windows\/[a-z0-9]+\/ArSrNaUIESRGAN_7\.1\.0\.exe$/);
   });
-  it("显式指定架构时忽略其他架构产物", async () => {
+  it.each(["x64", "x86_64", "universal"])("拒绝 macOS 不再支持的架构 %s", async arch => {
     await artifact("ArSrNaUIESRGAN-7.1.0-arm64.dmg");
-    await expect(createUploadPlan({ root, platform: "darwin", arch: "x64" })).rejects.toThrow("未找到 macos/x64");
+    await expect(createUploadPlan({ root, platform: "darwin", arch })).rejects.toThrow("macOS 仅支持 Apple Silicon");
+  });
+  it("目录中只有 Intel 与 Universal 时不生成发布计划", async () => {
+    await artifact("ArSrNaUIESRGAN-7.1.0.dmg");
+    await artifact("ArSrNaUIESRGAN-7.1.0-universal.dmg");
+    await expect(createUploadPlan({ root, platform: "darwin" })).rejects.toThrow("未找到");
   });
   it("选择 Linux AppImage 和 Snap，识别 amd64，跳过其他架构", async () => {
     for (const name of ["ArSrNaUIESRGAN-7.1.0.AppImage", "esrganui_7.1.0_amd64.snap", "ArSrNaUIESRGAN-7.1.0-arm64.AppImage", "ArSrNaUIESRGAN_7.1.0.exe"]) await artifact(name);
