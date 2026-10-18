@@ -6,6 +6,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { valid } from "semver";
 
+/**
+ * 必须运行在 Node 下（package.json 通过 tsx 启动）：cos-nodejs-sdk-v5 的分片上传依赖
+ * Node 的 fs.ReadStream 行为，在 Bun 下 UploadPart 会退化成 chunked 编码且不带
+ * Content-Length，COS 会返回 MissingContentLength。
+ */
 type Platform = "windows" | "macos" | "linux";
 type Architecture = "x64" | "arm64" | "ia32" | "armv7l" | "universal";
 type Environment = Record<string, string | undefined>;

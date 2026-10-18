@@ -62,7 +62,10 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
+      # public/realsgan 走 Git LFS，checkout 默认不会拉取真实文件，不开 lfs 会拿到指针文本
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       # macos-latest 目前指向 Apple Silicon；若标签漂移则直接失败，避免产出错误架构
       - name: 校验 runner 架构
@@ -125,7 +128,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
+      # 推理 exe 与 vcomp140*.dll 同样在 LFS 中，不拉取会把指针文件打进安装包
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:
