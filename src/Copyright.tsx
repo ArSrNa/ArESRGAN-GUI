@@ -13,36 +13,29 @@ export default function Copyright() {
       </div>
       <Separator />
       <div>
-        <h2 className="text-lg font-medium">Ant Design</h2>
-        软件UI来自Ant Design，并遵循 MIT 公共许可协议
-        <a href="https://github.com/ant-design/ant-design/" target="_blank">
-          https://github.com/ant-design/ant-design/
+        <h2 className="text-lg font-medium">shadcn/ui</h2>
+        软件UI框架来自shadcn/ui，并遵循 MIT 公共许可协议
+        <a href="https://github.com/shadcn-ui/ui" target="_blank">
+          https://github.com/shadcn-ui/ui
         </a>
       </div>
       <Separator />
 
       <div>
-        <h2 className="text-lg font-medium">electron-vite-react</h2>
-        开发脚手架为electron-vite-react，并遵循 MIT 公共许可协议
+        <h2 className="text-lg font-medium">tauri</h2>
+        开发脚手架为tauri，并遵循 MIT 公共许可协议
         <a
-          href="https://github.com/electron-vite/electron-vite-react"
+          href="https://github.com/tauri-apps/tauri"
           target="_blank"
         >
-          https://github.com/electron-vite/electron-vite-react
+          https://github.com/tauri-apps/tauri
         </a>
       </div>
       <Separator />
 
       <div>
         <h2 className="text-lg font-medium">本软件</h2>
-        本软件作者：Ar-Sr-Na
-        <a href="https://www.arsrna.cn" target="_blank">
-          www.arsrna.cn
-        </a>
-        拥有修改与二次创作该作品的权利，并受法律保护； 软件按照GNU
-        GPL3.0协议进行开放源代码。
-        <br />
-        本软件同时有软件著作权登记，与开源部分并不冲突，当违规使用（如进行非法内容的处理、不正当用途损害作者权益等）时维权。
+        软件按照GNU GPL3.0协议进行开放源代码。源代码请前往：https://cnb.cool/arsrna/esrgan-app
       </div>
     </div>
   );
