@@ -5,7 +5,6 @@ import Home from "./Home";
 import Error from "./error";
 import Copyright from "./Copyright";
 import { RecoilRoot } from "recoil";
-import FAQ from "./faq";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar1 } from "./components/navbar1";
 import { Separator } from "./components/ui/separator";
@@ -51,7 +50,6 @@ function Main() {
           <ErrorBoundary>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/faq" element={<FAQ />} />
               <Route path="/os" element={<Copyright />} />
               {/* <Route path='/start' element={<Start />} /> */}
               <Route path="*" element={<Error />} />
