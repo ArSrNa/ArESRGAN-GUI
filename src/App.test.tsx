@@ -2,26 +2,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { resetDesktop } from "./test/desktopMock";
 
 const checkUpdate = vi.hoisted(() => vi.fn());
 vi.mock("./utils", () => ({ CheckUpdate: checkUpdate }));
 
-/** App / Navbar1 在模块顶层读取 window.ipcRenderer，必须在导入前注入 */
-vi.hoisted(() => {
-  const invoke = vi.fn(async (channel: string) => {
-    if (channel === "getModels") return { success: true, data: ["realesrgan-x4plus-anime.param"] };
-    return { type: "exit", code: 0 };
-  });
-  Object.assign(window, {
-    ipcRenderer: { invoke, on: vi.fn(), off: vi.fn(), send: vi.fn(), once: vi.fn() },
-    webUtils: { getPathForFile: vi.fn(async (file: File) => `/files/${file.name}`) },
-  });
-});
+vi.mock("./lib/desktop", () => import("./test/desktopMock"));
 
 import App from "./App";
 import ErrorPage from "./error";
 
 beforeEach(() => {
+  resetDesktop();
   vi.spyOn(console, "log").mockImplementation(() => { });
   vi.spyOn(console, "warn").mockImplementation(() => { });
 });

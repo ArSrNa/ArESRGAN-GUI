@@ -9,21 +9,37 @@ import { Navbar1 } from "./components/navbar1";
 import { Separator } from "./components/ui/separator";
 import { CheckUpdate } from "./utils";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-
-declare global {
-  interface Window {
-    // expose in the `electron/preload/index.ts`
-    ipcRenderer: import("electron").IpcRenderer;
-    webUtils: {
-      getPathForFile: (file: File) => Promise<string>;
-    };
-  }
-}
+import { openExternal } from "./lib/desktop";
 
 function Main() {
   useEffect(() => {
     CheckUpdate();
   }, []);
+
+  /**
+   * 所有 http(s) 链接交给系统浏览器，主窗口不导航到远程站点。
+   */
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) {
+        return;
+      }
+      const href = anchor.getAttribute("href") ?? "";
+      if (!/^https?:\/\//i.test(href)) {
+        return;
+      }
+      event.preventDefault();
+      openExternal(href).catch((error) =>
+        console.error("打开外部链接失败:", error)
+      );
+    };
+
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, []);
+
   return (
     <ErrorBoundary>
       <div>
@@ -53,15 +69,15 @@ export default function App() {
     console.log("Powered by Ar-Sr-Na");
     console.log("https://www.arsrna.cn/");
     console.log(`
-    ####    ##                    #         
-    #        #                              
-    ###      #    #  #   ####    ##     ### 
-    #        #    #  #   ##       #    #  # 
-    #        #    ## #     ##     #    #  # 
-    ####    ###     ##   ####    ###    ####
-                  #  #
-                   ##
-    `);
+   ####    ##                    #
+   #        #
+   ###      #    #  #   ####    ##     ###
+   #        #    #  #   ##       #    #  #
+   #        #    ## #     ##     #    #  #
+   ####    ###     ##   ####    ###    ####
+                 #  #
+                  ##
+   `);
     console.warn("我永远喜欢爱莉希雅！");
   }, []);
   return (

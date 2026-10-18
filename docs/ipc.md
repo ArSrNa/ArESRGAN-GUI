@@ -1,5 +1,7 @@
 # IPC 接口参考
 
+> 历史文档：以下记录 Electron 7.x 实现。当前 demo 已迁移到 Tauri 8.x，当前开发命令见[项目 README](../README.md)，原生接口与任务设计见 [Tauri Spec](./tauri-migration/spec.md)。旧 Electron 命令和路径不再适用于当前分支。
+
 渲染层不直接访问 Node API，所有能力都通过 `electron/preload/index.ts` 暴露的 `window.ipcRenderer` 与 `window.webUtils` 调用。下面按“渲染层调用主进程”和“主进程推送事件”两类列出。
 
 ## preload 暴露的 API

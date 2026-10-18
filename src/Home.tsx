@@ -1,13 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { filesState } from "./states";
-import { FormDataType } from "./types";
-import "./App.scss";
 import { PauseCircleIcon, PlayCircleIcon, Trash2Icon } from "lucide-react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
+
+import "./App.scss";
+import { filesState } from "./states";
+import type {
+  BatchSnapshot,
+  FormDataType,
+  ImageInput,
+  TaskState,
+} from "./types";
+import * as desktop from "./lib/desktop";
+import { isBatchActive, useBatch } from "./lib/useBatch";
+import { cn } from "./lib/utils";
 import { FieldLegend, FieldSet } from "./components/ui/field";
-import { Dropzone } from "./components/dropzone";
+import { Dropzone, DropzoneContent } from "./components/ui/shadcn-io/dropzone";
 import {
   Select,
   SelectContent,
@@ -20,13 +29,23 @@ import { Label } from "./components/ui/label";
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 
-const { ipcRenderer, webUtils } = window;
+/** 默认模型缺失时报资源异常，不静默切换其他模型 */
+const DEFAULT_MODEL = "realesrgan-x4plus-anime";
 
+function describeError(error: unknown): string {
+  if (typeof error === "string") {
+    return error;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
 
 export default function Home() {
   const form = useForm<FormDataType>({
     defaultValues: {
-      model: "realesrgan-x4plus-anime",
+      model: DEFAULT_MODEL,
       output: {
         mode: "current",
         path: "",
@@ -35,32 +54,130 @@ export default function Home() {
   });
   const [files, setFiles] = useAtom(filesState);
   const [modelList, setModelList] = useState<string[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const batch = useBatch();
+  const busy = isBatchActive(batch);
+  /** 拖放监听不随批次状态重订阅，用 ref 读取最新值 */
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
 
-  useEffect(() => form.setValue("files", files), [files]);
+  useEffect(() => {
+    /**获取模型列表 */
+    desktop
+      .listModels()
+      .then((models) => {
+        setModelList(models);
+        if (!models.includes(DEFAULT_MODEL)) {
+          toast.error(`内置模型资源异常：缺少默认模型 ${DEFAULT_MODEL}`);
+        }
+      })
+      .catch((error) => toast.error(describeError(error)));
+  }, []);
+
+  const appendInputs = useCallback(
+    (incoming: ImageInput[]) => {
+      if (incoming.length === 0) {
+        return;
+      }
+      setFiles((current) => {
+        const known = new Set(current.map((item) => item.path));
+        const merged = [...current];
+        for (const item of incoming) {
+          if (known.has(item.path)) {
+            continue;
+          }
+          known.add(item.path);
+          merged.push(item);
+        }
+        return merged;
+      });
+    },
+    [setFiles]
+  );
+
+  /**
+   * @description 选择图片：取消对话框不改变现有列表
+   */
+  const handlePick = useCallback(async () => {
+    if (busy) {
+      toast.info("任务执行中，暂时无法修改图片列表");
+      return;
+    }
+    try {
+      const result = await desktop.pickImages();
+      if (!result) {
+        return;
+      }
+      if (result.rejected.length > 0) {
+        toast.error(result.rejected.join("；"));
+      }
+      appendInputs(result.inputs);
+    } catch (error) {
+      toast.error(describeError(error));
+    }
+  }, [appendInputs, busy]);
 
   /**
    * @description 设置输出路径
    */
-  const handleSetPath = () => {
-    ipcRenderer.invoke("selectFolder").then((path) => {
-      if (!path) return;
+  const handleSetPath = async () => {
+    try {
+      const path = await desktop.pickOutputDirectory();
+      if (!path) {
+        return;
+      }
       form.setValue("output.path", path);
-    });
+    } catch (error) {
+      toast.error(describeError(error));
+    }
   };
 
+  /** 原生拖入：webview 内拿不到 HTML5 drop，只能订阅窗口拖放事件 */
   useEffect(() => {
-    /**获取模型列表 */
-    ipcRenderer
-      .invoke("getModels")
-      .then((e: { success: boolean; data: string[] }) => {
-        if (!e.success) {
-          toast.error(e.data);
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+
+    desktop
+      .onFileDrop(
+        async (paths) => {
+          if (busyRef.current) {
+            toast.info("任务执行中，暂时无法修改图片列表");
+            return;
+          }
+          const images = paths.filter(desktop.isSupportedImage);
+          const ignored = paths.length - images.length;
+          if (ignored > 0) {
+            toast.error(`已忽略 ${ignored} 个文件，仅支持 jpg/png/webp 图片`);
+          }
+          if (images.length === 0) {
+            return;
+          }
+          try {
+            const result = await desktop.registerInputs(images);
+            if (result.rejected.length > 0) {
+              toast.error(result.rejected.join("；"));
+            }
+            appendInputs(result.inputs);
+          } catch (error) {
+            toast.error(describeError(error));
+          }
+        },
+        (active) => setDragActive(active)
+      )
+      .then((stop) => {
+        if (disposed) {
+          stop();
           return;
         }
-        const data = e.data.map((m) => m.replace(".param", ""));
-        setModelList(data);
-      });
-  }, []);
+        unlisten = stop;
+      })
+      .catch((error) => console.error("订阅拖放事件失败:", error));
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [appendInputs]);
 
   return (
     <>
@@ -69,14 +186,14 @@ export default function Home() {
           <FieldSet>
             <FieldLegend>上传图片</FieldLegend>
             <Dropzone
-              accept="image/*"
-              multiple
-              files={files}
-              onFileChange={setFiles}
+              count={files.length}
+              dragActive={dragActive}
+              disabled={busy}
+              onPick={handlePick}
             >
+              <DropzoneContent count={files.length} />
             </Dropzone>
           </FieldSet>
-
 
           <div className="flex flex-col gap-5">
             <FieldSet>
@@ -91,9 +208,9 @@ export default function Home() {
                       <SelectValue placeholder="选择模型" />
                     </SelectTrigger>
                     <SelectContent>
-                      {modelList?.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
+                      {modelList.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -120,7 +237,7 @@ export default function Home() {
                       </Label>
                       {form.watch("output.mode") === "custom" && (
                         <Input
-                          value={form.watch("output.path")}
+                          value={form.watch("output.path") ?? ""}
                           placeholder="点击选择输出路径"
                           readOnly
                           className="cursor-pointer"
@@ -138,86 +255,126 @@ export default function Home() {
             </FieldSet>
           </div>
         </form>
-        <TView form={form} />
+
+        <TView form={form} batch={batch} modelsReady={modelList.length > 0} />
       </div>
     </>
   );
 }
 
-function TView({ form }: { form: UseFormReturn<FormDataType> }) {
+type OverlayTone = "pending" | "failed" | "cancelled";
+
+interface OverlayInfo {
+  text: string;
+  tone: OverlayTone;
+}
+
+function overlayOf(task: TaskState | undefined): OverlayInfo | null {
+  if (!task) {
+    return null;
+  }
+  switch (task.status) {
+    case "queued":
+      return { text: "等待处理", tone: "pending" };
+    case "running":
+      return {
+        text:
+          task.progress === null
+            ? "处理中"
+            : `处理中 ${Math.round(task.progress)}%`,
+        tone: "pending",
+      };
+    case "failed":
+      return { text: "处理失败", tone: "failed" };
+    case "cancelled":
+      return { text: "已取消", tone: "cancelled" };
+    case "success":
+      return null;
+  }
+}
+
+function TView({
+  form,
+  batch,
+  modelsReady,
+}: {
+  form: UseFormReturn<FormDataType>;
+  batch: BatchSnapshot | null;
+  modelsReady: boolean;
+}) {
   const [files, setFiles] = useAtom(filesState);
-  const [start, setStart] = useState(false);
-  const [srcs, setSrcs] = useState<string[]>([]);
-  const stop = useRef(false);
-  const [current, setCurrent] = useState<number>(0);
-  const [progress, setProgress] = useState<number>(0);
+  const busy = isBatchActive(batch);
+  const stopping = batch?.status === "cancelling";
+  const finishedBatch = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!files.length) return setSrcs([]);
-    /**文件上传后，将文件信息转换为DataSourceType */
-    Promise.all(
-      files.map(async (file, i) => await webUtils.getPathForFile(file))
-    ).then((res) => {
-      setSrcs(res);
-    });
-  }, [files]);
+  const taskByPath = useMemo(() => {
+    const map = new Map<string, TaskState>();
+    batch?.tasks.forEach((task) => map.set(task.input, task));
+    return map;
+  }, [batch?.tasks]);
 
+  /** 批次结束后汇总失败数量，避免逐条弹窗 */
   useEffect(() => {
-    function onLog(e: Electron.IpcRendererEvent, m: any) {
-      setProgress(parseInt(m.data.replace("%", "")));
-      console.log(m);
+    if (!batch || batch.status !== "finished") {
+      return;
     }
-    //读取日志
-    ipcRenderer.on("esrgan:stdout", onLog);
-    return () => {
-      ipcRenderer.off("esrgan:stdout", onLog);
-    };
-  }, []);
+    if (finishedBatch.current === batch.id) {
+      return;
+    }
+    finishedBatch.current = batch.id;
+
+    const failed = batch.tasks.filter((task) => task.status === "failed").length;
+    const cancelled = batch.tasks.filter(
+      (task) => task.status === "cancelled"
+    ).length;
+    if (failed > 0) {
+      toast.error(`批次结束：${failed} 张处理失败`);
+    } else if (cancelled > 0) {
+      toast.info(`批次已停止：${cancelled} 张未处理`);
+    }
+  }, [batch]);
 
   async function handleSubmit(data: FormDataType) {
-    console.log(data);
-    stop.current = false;
-    const output = data?.output;
-    const model = data?.model;
-    for (let count = 0; count < files.length; count++) {
-      if (stop.current) break;
-      setStart(true);
-      console.log(count, "开始处理");
-      setCurrent(count);
-      let exitMsg = await ipcRenderer.invoke("esrgan", {
-        filepath: srcs[count],
-        model,
-        output,
+    try {
+      await desktop.startBatch({
+        inputs: files.map((file) => file.path),
+        model: data.model,
+        output: data.output,
       });
-      console.log(count, "退出", exitMsg);
+    } catch (error) {
+      toast.error(describeError(error));
     }
-    setStart(false);
   }
 
   const handleStop = async () => {
-    await ipcRenderer.invoke("kill-esrgan");
-    stop.current = true;
-    setStart(false);
+    if (!batch) {
+      return;
+    }
+    try {
+      await desktop.stopBatch(batch.id);
+    } catch (error) {
+      toast.error(describeError(error));
+    }
   };
 
   return (
     <>
       <div className="sticky top-15 z-20 grid grid-cols-2 gap-3 my-3">
-        {!start && (
+        {!busy && (
           <Button
-            disabled={srcs.length === 0 || start}
+            disabled={files.length === 0 || !modelsReady}
             onClick={form.handleSubmit(handleSubmit)}
           >
             <PlayCircleIcon /> 开始
           </Button>
         )}
-        {start && (
-          <Button onClick={handleStop}>
-            <PauseCircleIcon /> 停止
+        {busy && (
+          <Button onClick={handleStop} disabled={stopping}>
+            <PauseCircleIcon /> {stopping ? "正在停止…" : "停止"}
           </Button>
         )}
         <Button
-          disabled={srcs.length === 0 || start}
+          disabled={files.length === 0 || busy}
           onClick={() => {
             setFiles([]);
           }}
@@ -226,37 +383,52 @@ function TView({ form }: { form: UseFormReturn<FormDataType> }) {
         </Button>
       </div>
       <div className="flex flex-wrap gap-3 border items-center justify-center rounded-lg p-3 min-h-60 overflow-y-auto">
-        {srcs?.map((m, i) => (
-          <div key={"preview_" + m} className="w-40 h-40 relative">
-            {start && current <= i && (
-              <div className="absolute top-0 left-0 right-0 bottom-0 bg-black/50 text-white flex items-center justify-center rounded-lg z-10">
-                {current === i && <>处理中 {progress}%</>}
-                {current < i && <>等待处理</>}
-              </div>
-            )}
-            <img
-              src={"file://" + m}
-              alt={m}
-              data-current={start && current <= i}
-              draggable={false}
-              className="w-full h-full object-contain border rounded-lg data-[current=true]:blur-xs"
-            />
-            {!start && (
-              <div
-                onClick={(e) => {
-                  setFiles((s) => s.toSpliced(i, 1));
-                }}
-                className="bg-black/50 cursor-pointer absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center">
-                <Trash2Icon
-                  className="right-0 bottom-0 size-4"
-                  color="white"
-                />
-              </div>
-            )}
-          </div>
-        ))}
+        {files.map((file, index) => {
+          const task = taskByPath.get(file.path);
+          const overlay = overlayOf(task);
+          return (
+            <div key={file.path} className="w-40 h-40 relative">
+              {overlay && (
+                <div
+                  title={task?.error ?? undefined}
+                  className={cn(
+                    "absolute inset-0 text-white flex items-center justify-center rounded-lg z-10 px-2 text-center text-sm",
+                    overlay.tone === "pending" && "bg-black/50",
+                    overlay.tone === "failed" && "bg-red-950/70 text-red-100",
+                    overlay.tone === "cancelled" &&
+                      "bg-amber-950/70 text-amber-100"
+                  )}
+                >
+                  {overlay.text}
+                </div>
+              )}
+              <img
+                src={desktop.toPreviewUrl(file.path)}
+                alt={file.name}
+                draggable={false}
+                className={cn(
+                  "w-full h-full object-contain border rounded-lg",
+                  overlay?.tone === "pending" && "blur-xs"
+                )}
+              />
+              {!busy && (
+                <div
+                  className="bg-black/50 cursor-pointer absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center"
+                  onClick={() => {
+                    setFiles((current) => current.toSpliced(index, 1));
+                  }}
+                >
+                  <Trash2Icon
+                    className="right-0 bottom-0 size-4"
+                    color="white"
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
 
-        {srcs?.length === 0 && <div >暂无图片</div>}
+        {files.length === 0 && <div>暂无图片</div>}
       </div>
     </>
   );

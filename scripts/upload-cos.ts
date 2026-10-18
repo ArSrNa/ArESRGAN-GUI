@@ -1,5 +1,5 @@
 import { readFile, readdir, stat } from "node:fs/promises";
-import type { Dirent } from "node:fs";
+import { existsSync, type Dirent } from "node:fs";
 import type COS from "cos-nodejs-sdk-v5";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -82,26 +82,46 @@ export async function createUploadPlan({ root = projectRoot, platform: inputPlat
   }
   const pkg: unknown = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   if (!isRecord(pkg) || typeof pkg.version !== "string" || !valid(pkg.version)) throw new Error("package.json 的 version 必须是有效 semver");
-  const builder: unknown = JSON.parse(await readFile(path.join(root, "electron-builder.json"), "utf8"));
-  const output = isRecord(builder) && isRecord(builder.directories) ? builder.directories.output : undefined;
-  if (typeof output !== "string" || !output.includes("${version}")) throw new Error("electron-builder 的 output 必须包含 ${version}");
-  const outputDir = path.resolve(root, output.replaceAll("${version}", pkg.version));
-  const relative = path.relative(root, outputDir);
-  if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || outputDir.includes("${")) throw new Error("无法解析项目内的 builder 输出目录");
-  let entries: Dirent[];
-  try { entries = await readdir(outputDir, { withFileTypes: true }); }
-  catch (error) {
-    if (isRecord(error) && error.code === "ENOENT") throw new Error(`没有构建产物目录：${outputDir}，请先构建`);
-    throw error;
+  let outputDirs: string[];
+  if (existsSync(path.join(root, "src-tauri", "tauri.conf.json"))) {
+    const target = path.join(root, "src-tauri", "target");
+    let targets: Dirent[] = [];
+    try { targets = await readdir(target, { withFileTypes: true }); }
+    catch (error) { if (!isRecord(error) || error.code !== "ENOENT") throw error; }
+    const releases = [path.join(target, "release"), ...targets
+      .filter(entry => entry.isDirectory() && entry.name !== "release" && entry.name !== "debug")
+      .map(entry => path.join(target, entry.name, "release"))];
+    const formats = platform === "windows" ? ["nsis"] : platform === "macos" ? ["dmg"] : ["appimage"];
+    outputDirs = releases.flatMap(release => formats.map(format => path.join(release, "bundle", format)));
+  } else {
+    // 兼容旧版 Electron 产物工具及其已有调用方。
+    const builder: unknown = JSON.parse(await readFile(path.join(root, "electron-builder.json"), "utf8"));
+    const output = isRecord(builder) && isRecord(builder.directories) ? builder.directories.output : undefined;
+    if (typeof output !== "string" || !output.includes("${version}")) throw new Error("electron-builder 的 output 必须包含 ${version}");
+    const outputDir = path.resolve(root, output.replaceAll("${version}", pkg.version));
+    const relative = path.relative(root, outputDir);
+    if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || outputDir.includes("${")) throw new Error("无法解析项目内的 builder 输出目录");
+    outputDirs = [outputDir];
   }
+  const candidates: { entry: Dirent; outputDir: string }[] = [];
+  let foundDirectory = false;
+  for (const outputDir of outputDirs) {
+    try {
+      const entries = await readdir(outputDir, { withFileTypes: true });
+      foundDirectory = true;
+      candidates.push(...entries.map(entry => ({ entry, outputDir })));
+    } catch (error) { if (!isRecord(error) || error.code !== "ENOENT") throw error; }
+  }
+  if (!foundDirectory) throw new Error(`没有构建产物目录，候选位置：${outputDirs.join("、")}，请先构建`);
   const files: UploadFile[] = [];
   // Builder omits x64 in default DMG/AppImage names; Windows names omit all architectures, so fall back to the requested or host arch there.
   const fallbackArch: Architecture = platform === "windows" ? arch ?? architectures[process.arch] ?? "x64" : "x64";
-  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const { entry, outputDir } of candidates.sort((a, b) => a.entry.name.localeCompare(b.entry.name))) {
     // Only top-level installers: never upload unpacked applications, symlinks or debug files.
     const extension = extensions[platform].find(ext => entry.name.endsWith(ext));
     if (!entry.isFile() || !extension) continue;
     let stem = entry.name.slice(0, -extension.length);
+    if (platform === "windows") stem = stem.replace(/-setup$/, "");
     const endsWithVersion = (name: string): boolean => name.endsWith(`-${pkg.version}`) || name.endsWith(`_${pkg.version}`);
     const match = endsWithVersion(stem) ? null : stem.match(/[-_](x86_64|aarch64|universal|armv7l|arm64|amd64|armhf|ia32|i386|x64)$/);
     if (match) stem = stem.slice(0, -match[0].length);

@@ -191,22 +191,3 @@
   text-align: center;
   line-height: 100px;
 }
-
-.faq {
-  &-main {
-    display: grid;
-    grid-template-columns: 200px auto;
-  }
-
-  &-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-    border-right: 1px solid #ddd;
-  }
-
-  &-list {
-    overflow-y: auto;
-  }
-}
