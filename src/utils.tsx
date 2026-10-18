@@ -23,12 +23,15 @@ export async function CheckUpdate() {
     }
 
     if (info.hasUpdate) {
+      if (!info.link || new URL(info.link).protocol !== "https:") {
+        throw new Error("更新接口返回的下载链接无效");
+      }
       toast.success(
         <div>
           检查到新版本 {info.latestVersion}，请
           <a
             className="text-blue-500"
-            href={info.link ?? "#"}
+            href={info.link}
             target="_blank"
             rel="noreferrer"
           >

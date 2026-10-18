@@ -45,7 +45,7 @@ pub fn sidecar_path() -> Result<PathBuf, String> {
         .cloned()
         .ok_or_else(|| {
             format!(
-                "找不到内置推理程序，已检查：{}。请执行 pnpm run assets 重新准备资源。",
+                "找不到内置推理程序，已检查：{}。请执行 bun run assets 重新准备资源。",
                 display_list(&candidates)
             )
         })
@@ -55,7 +55,10 @@ pub fn sidecar_path() -> Result<PathBuf, String> {
 pub fn models_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let mut candidates: Vec<PathBuf> = Vec::new();
 
-    if let Ok(dir) = app.path().resolve("models", tauri::path::BaseDirectory::Resource) {
+    if let Ok(dir) = app
+        .path()
+        .resolve("models", tauri::path::BaseDirectory::Resource)
+    {
         candidates.push(dir);
     }
     candidates.push(
@@ -70,7 +73,7 @@ pub fn models_dir(app: &AppHandle) -> Result<PathBuf, String> {
         .cloned()
         .ok_or_else(|| {
             format!(
-                "找不到内置模型目录，已检查：{}。请执行 pnpm run assets 重新准备资源。",
+                "找不到内置模型目录，已检查：{}。请执行 bun run assets 重新准备资源。",
                 display_list(&candidates)
             )
         })

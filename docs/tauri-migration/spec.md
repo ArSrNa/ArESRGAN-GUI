@@ -11,20 +11,22 @@
 - **待决策**：需要用户确定的产品行为，不提供隐含默认值。
 - **待验证**：不能仅凭文件存在或静态检查承诺的兼容性与运行结果。
 
-## 2. 现状基线
+## 2. 迁移前基线
+
+本节记录旧 demo 提交 `14c16db` 的迁移前状态；当前实现与整合进展见第 9、11 节。已删除文件的链接指向迁移前提交。
 
 | 位置 | 已确认的事实 |
 | --- | --- |
 | [package.json](../../package.json) | React 18、Vite 7、Electron 35；现有 build 使用 TypeScript、Vite 和 electron-builder。 |
 | [vite.config.ts](../../vite.config.ts) | 前端及 Electron main/preload 在同一配置中构建，关闭了 public 目录自动复制。 |
-| [electron/main/esrgan.ts](../../electron/main/esrgan.ts) | 按 macOS/其他系统选择二进制，使用 `spawn`，传递 `-i`、`-o`、`-m`、`-n`；读取 stderr，使用全局子进程引用处理停止。 |
-| [electron/main/index.ts](../../electron/main/index.ts) | 创建窗口、单实例、外链打开、目录选择、扫描模型及应用信息 hash 等桌面逻辑；系统进度条由 esrgan.ts 更新。 |
-| [electron/preload/index.ts](../../electron/preload/index.ts) | 暴露 `ipcRenderer` 和 `webUtils.getPathForFile`。on/off 包装后的监听器引用不一致，需要在迁移中消除订阅清理问题。 |
+| [electron/main/esrgan.ts](https://cnb.cool/arsrna/esrgan-app/-/blob/14c16db04fed4b069978f7dcad489ee611722dd4/electron/main/esrgan.ts) | 按 macOS/其他系统选择二进制，使用 `spawn`，传递 `-i`、`-o`、`-m`、`-n`；读取 stderr，使用全局子进程引用处理停止。 |
+| [electron/main/index.ts](https://cnb.cool/arsrna/esrgan-app/-/blob/14c16db04fed4b069978f7dcad489ee611722dd4/electron/main/index.ts) | 创建窗口、单实例、外链打开、目录选择、扫描模型及应用信息 hash 等桌面逻辑；系统进度条由 esrgan.ts 更新。 |
+| [electron/preload/index.ts](https://cnb.cool/arsrna/esrgan-app/-/blob/14c16db04fed4b069978f7dcad489ee611722dd4/electron/preload/index.ts) | 暴露 `ipcRenderer` 和 `webUtils.getPathForFile`。on/off 包装后的监听器引用不一致，需要在迁移中消除订阅清理问题。 |
 | [src/Home.tsx](../../src/Home.tsx) | 前端按选图列表串行调用 ESRGAN；依赖浏览器 File 转本地路径，用 `file://` 预览；提供开始、停止、清空和删除图片。 |
 | [src/types.ts](../../src/types.ts)、[src/states.ts](../../src/states.ts) | 输入列表使用 `File[]`，定义模型及两种输出模式；Home 中将默认模型设为 `realesrgan-x4plus-anime`。 |
 | [src/App.tsx](../../src/App.tsx)、[src/components/navbar1.tsx](../../src/components/navbar1.tsx) | 首页、FAQ、开源许可、问题反馈、调试控制台和检查更新；进入主界面会检查更新。 |
 | [src/utils.tsx](../../src/utils.tsx)、[release.ts](../../release.ts) | 检查更新请求现有线上接口，并固定使用 Windows hash 字段；应用侧 hash 来源于应用信息，release 脚本 hash 来源于路径字符串，两者不是同一校验依据。 |
-| [electron-builder.json](../../electron-builder.json) | Windows 使用 NSIS，macOS 使用 DMG；public 作为额外资源打包。 |
+| [electron-builder.json](https://cnb.cool/arsrna/esrgan-app/-/blob/14c16db04fed4b069978f7dcad489ee611722dd4/electron-builder.json) | Windows 使用 NSIS，macOS 使用 DMG；public 作为额外资源打包。 |
 | [.cnb.yml](../../.cnb.yml) | 当前配置包含开发环境安装依赖和同步 GitHub，未定义 Windows/macOS 安装包构建及验收流水线。 |
 
 ### 2.1 现有资源
@@ -225,7 +227,7 @@ Q-01～Q-05 已于 2026-10-18 由用户确认，实现行为与上述条目一�
 
 - Windows x64 与 macOS Intel 的安装包构建与真实推理验收。当前只在 macOS arm64 验证了构建、打包、启动，以及直接调用推理二进制。
 - 最低系统版本、macOS 产物形态、签名与旧安装版升级兼容评估（E-01、E-02）。
-- 自动构建流水线；本阶段未修改 `.cnb.yml`。
+- 实际 Runner 的工具链与安装包构建验收。整合到当前 demo 时，已将原有 macOS / Windows 手动构建入口适配为 Tauri，并适配 COS 产物识别；未触发远端构建或真实上传。
 
 ## 10. 技术依据
 
@@ -235,3 +237,7 @@ Q-01～Q-05 已于 2026-10-18 由用户确认，实现行为与上述条目一�
 - [Embedding Additional Files](https://v2.tauri.app/develop/resources/)：模型及其他附加资源的打包与路径解析。
 - [Dialog](https://v2.tauri.app/plugin/dialog/)：原生文件与目录选择。
 - [convertFileSrc](https://v2.tauri.app/reference/javascript/api/namespacecore/#convertfilesrc)：本地文件预览及资源协议配置。
+
+## 11. 与当前远端 demo 的整合
+
+迁移分支源于本地旧 demo（14c16db），远端 demo 已指向另一条历史（7699a1b）。整合以远端 demo 为基线移植迁移提交，保留 React 19、Jotai、版本元数据、COS 上传和不依赖 Electron 的既有测试。前端桌面边界测试同步改为 Tauri；旧 Electron 开发文档保留并标记为历史资料。构建入口采用 demo 既有的 Bun 工作流，pnpm 锁文件也同步更新。

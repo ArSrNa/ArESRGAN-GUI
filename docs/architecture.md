@@ -1,5 +1,7 @@
 # 架构说明
 
+> 历史文档：以下记录 Electron 7.x 实现。当前 demo 已迁移到 Tauri 8.x，当前开发命令见[项目 README](../README.md)，原生接口与任务设计见 [Tauri Spec](./tauri-migration/spec.md)。旧 Electron 命令和路径不再适用于当前分支。
+
 ## 技术栈
 
 | 领域 | 选型 |

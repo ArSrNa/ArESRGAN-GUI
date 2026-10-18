@@ -1,12 +1,5 @@
-# electron 二进制及 electron-builder 依赖下载镜像（避免直连 GitHub 超时）
-.electron_mirror: &electron_mirror
-  env:
-    ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
-    ELECTRON_BUILDER_BINARIES_MIRROR: https://npmmirror.com/mirrors/electron-builder-binaries/
-
 # 基础环境
 .configuration: &configuration
-  <<: *electron_mirror
   docker:
     image: docker.cnb.cool/arsrna/dev-image/nodejs
     volumes:
@@ -18,7 +11,7 @@
 
 .build: &build
   name: build
-  script: bun run build
+  script: bun run app:build
 
 .upload_cos: &upload_cos
   name: 发布更新到 COS
@@ -37,24 +30,17 @@ $:
       stages:
         - <<: *install
 
-  web_trigger_build_linux:
-    - runner:
-        cpus: 32
-      <<: *configuration
-      stages:
-        - <<: *install
-        - <<: *build
-        - <<: *upload_cos
-
   web_trigger_build_mac:
     - runner:
         namespace: group
         tags:
           - seele-macbook
-      <<: *electron_mirror
       stages:
         - <<: *install
+        - name: 检查 Rust 工具链
+          script: cargo --version
         - <<: *build
+          script: bun run app:build --bundles dmg
         - <<: *upload_cos
 
   web_trigger_build_windows:
@@ -62,10 +48,12 @@ $:
         namespace: group
         tags:
           - keqing
-      <<: *electron_mirror
       stages:
         - <<: *install
+        - name: 检查 Rust 工具链
+          script: cargo --version
         - <<: *build
+          script: bun run app:build --bundles nsis
         - <<: *upload_cos
 
 "**":

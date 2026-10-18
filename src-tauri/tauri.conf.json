@@ -4,9 +4,9 @@
   "version": "../package.json",
   "identifier": "cn.arsrna.esrgan",
   "build": {
-    "beforeDevCommand": "pnpm run assets && pnpm run dev",
+    "beforeDevCommand": "bun run assets && bun run dev",
     "devUrl": "http://localhost:7777",
-    "beforeBuildCommand": "pnpm run assets && pnpm run build",
+    "beforeBuildCommand": "bun run assets && bun run build",
     "frontendDist": "../dist"
   },
   "app": {

@@ -17,6 +17,26 @@ afterEach(async () => { await rm(root, { recursive: true, force: true }); });
 async function artifact(name: string, contents = "installer") { await writeFile(path.join(output, name), contents); }
 
 describe("COS 安装包选择", () => {
+  async function tauriArtifact(relative: string, name: string) {
+    const dir = path.join(root, "src-tauri");
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, "tauri.conf.json"), JSON.stringify({ version: "../package.json" }));
+    const output = path.join(dir, "target", relative);
+    await mkdir(output, { recursive: true });
+    await writeFile(path.join(output, name), "installer");
+  }
+  it("识别 Tauri 原生和指定架构构建的 DMG", async () => {
+    await tauriArtifact("release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_aarch64.dmg");
+    await tauriArtifact("x86_64-apple-darwin/release/bundle/dmg", "ArSrNaUIESRGAN_7.1.0_x64.dmg");
+    const plan = await createUploadPlan({ root, platform: "darwin" });
+    expect(plan.files.map(file => file.arch).sort()).toEqual(["arm64", "x64"]);
+    expect(plan.files.every(file => file.filePath.includes("src-tauri"))).toBe(true);
+  });
+  it("识别 Tauri NSIS 的架构与 setup 后缀", async () => {
+    await tauriArtifact("release/bundle/nsis", "ArSrNaUIESRGAN_7.1.0_x64-setup.exe");
+    const plan = await createUploadPlan({ root, platform: "windows", arch: "x64" });
+    expect(plan.files[0].key).toBe("app-release/ArSrNaUI-ESRGAN/7.1.0/windows/x64/ArSrNaUIESRGAN_7.1.0_x64-setup.exe");
+  });
   it("只选择当前版本的 Windows 安装包，跳过目录、符号链接和辅助文件", async () => {
     await artifact("ArSrNaUIESRGAN_7.1.0.exe");
     await artifact("ArSrNaUIESRGAN_7.0.0.exe");

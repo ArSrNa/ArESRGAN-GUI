@@ -72,9 +72,9 @@ pub async fn check_update(app: AppHandle) -> Result<UpdateInfo, String> {
         return Err("检查更新失败：响应中缺少版本号".to_string());
     };
 
-    let latest = parse_version(&raw)
-        .ok_or_else(|| format!("检查更新失败：无法解析版本号 {raw}"))?;
-    let has_update = latest > current;
+    let latest =
+        parse_version(&raw).ok_or_else(|| format!("检查更新失败：无法解析版本号 {raw}"))?;
+    let has_update = latest.cmp_precedence(&current).is_gt();
 
     Ok(UpdateInfo {
         skipped: false,
@@ -86,29 +86,9 @@ pub async fn check_update(app: AppHandle) -> Result<UpdateInfo, String> {
     })
 }
 
-/// 把 `v7.2.0`、`7.2`、`7.1.0.0` 之类的版本串归一化为 semver。
+/// 保留 demo 的严格 semver 比较，包括预发布和构建元数据语义。
 fn parse_version(raw: &str) -> Option<semver::Version> {
-    let cleaned: String = raw
-        .chars()
-        .filter(|character| character.is_ascii_digit() || *character == '.')
-        .collect();
-
-    let mut numbers: Vec<u64> = Vec::new();
-    for part in cleaned.split('.').filter(|part| !part.is_empty()) {
-        numbers.push(part.parse().ok()?);
-        if numbers.len() == 3 {
-            break;
-        }
-    }
-
-    if numbers.is_empty() {
-        return None;
-    }
-    while numbers.len() < 3 {
-        numbers.push(0);
-    }
-
-    Some(semver::Version::new(numbers[0], numbers[1], numbers[2]))
+    semver::Version::parse(raw.strip_prefix('v').unwrap_or(raw)).ok()
 }
 
 fn content_text(value: Option<serde_json::Value>) -> Option<String> {
@@ -127,8 +107,20 @@ mod tests {
     fn parses_release_versions() {
         assert_eq!(parse_version("7.2.0").unwrap().to_string(), "7.2.0");
         assert_eq!(parse_version("v7.2.0").unwrap().to_string(), "7.2.0");
-        assert_eq!(parse_version("7.2").unwrap().to_string(), "7.2.0");
-        assert_eq!(parse_version("7.1.0.0").unwrap().to_string(), "7.1.0");
+        assert!(parse_version("7.2").is_none());
+        assert!(parse_version("7.1.0.0").is_none());
         assert!(parse_version("latest").is_none());
+    }
+
+    #[test]
+    fn preserves_prerelease_and_ignores_build_metadata_in_precedence() {
+        let beta = parse_version("7.0.0-beta.2").unwrap();
+        let newer_beta = parse_version("7.0.0-beta.10").unwrap();
+        let stable = parse_version("7.0.0").unwrap();
+        assert!(newer_beta.cmp_precedence(&beta).is_gt());
+        assert!(stable.cmp_precedence(&newer_beta).is_gt());
+        let local = parse_version("7.0.0+local").unwrap();
+        let remote = parse_version("7.0.0+remote").unwrap();
+        assert!(local.cmp_precedence(&remote).is_eq());
     }
 }

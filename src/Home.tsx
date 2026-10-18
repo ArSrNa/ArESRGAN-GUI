@@ -412,12 +412,14 @@ function TView({
                 )}
               />
               {!busy && (
-                <div className="bg-black/50 absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center">
+                <div
+                  className="bg-black/50 cursor-pointer absolute bottom-0 rounded-b-lg right-0 left-0 py-1 z-10 flex items-center justify-center"
+                  onClick={() => {
+                    setFiles((current) => current.toSpliced(index, 1));
+                  }}
+                >
                   <Trash2Icon
-                    className="right-0 bottom-0 size-4 cursor-pointer"
-                    onClick={() => {
-                      setFiles((current) => current.toSpliced(index, 1));
-                    }}
+                    className="right-0 bottom-0 size-4"
                     color="white"
                   />
                 </div>

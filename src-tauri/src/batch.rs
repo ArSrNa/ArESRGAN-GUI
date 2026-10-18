@@ -557,14 +557,20 @@ fn evaluate_result(
     diagnostics: &VecDeque<String>,
 ) -> (TaskStatus, Option<String>) {
     let Some(status) = exit_status else {
-        return (TaskStatus::Failed, Some(with_diagnostics("推理进程异常结束", diagnostics)));
+        return (
+            TaskStatus::Failed,
+            Some(with_diagnostics("推理进程异常结束", diagnostics)),
+        );
     };
     if !status.success() {
         let reason = match status.code() {
             Some(code) => format!("推理进程异常退出（退出码 {code}）"),
             None => "推理进程被信号终止".to_string(),
         };
-        return (TaskStatus::Failed, Some(with_diagnostics(&reason, diagnostics)));
+        return (
+            TaskStatus::Failed,
+            Some(with_diagnostics(&reason, diagnostics)),
+        );
     }
 
     // 输出路径在提交批次时已保证不存在，因此结束后的文件必定由本次任务生成
@@ -576,10 +582,7 @@ fn evaluate_result(
         ),
         Err(_) => (
             TaskStatus::Failed,
-            Some(with_diagnostics(
-                "推理结束但未生成输出文件",
-                diagnostics,
-            )),
+            Some(with_diagnostics("推理结束但未生成输出文件", diagnostics)),
         ),
     }
 }
@@ -625,7 +628,10 @@ fn push_diagnostic(diagnostics: &mut VecDeque<String>, line: String) {
     if trimmed.is_empty() {
         return;
     }
-    let limited = trimmed.chars().take(MAX_DIAGNOSTIC_CHARS).collect::<String>();
+    let limited = trimmed
+        .chars()
+        .take(MAX_DIAGNOSTIC_CHARS)
+        .collect::<String>();
     diagnostics.push_back(limited);
     while diagnostics.len() > MAX_DIAGNOSTIC_LINES {
         diagnostics.pop_front();
@@ -800,7 +806,11 @@ fn resolve_output_dir(output: &OutputConfig) -> Result<Option<PathBuf>, String> 
 }
 
 /// 分配输出路径：重名时按 `name(1).png`、`name(2).png` 递增，绝不覆盖已有文件。
-fn allocate_output(dir: &Path, base: &str, reserved: &mut HashSet<String>) -> Result<PathBuf, String> {
+fn allocate_output(
+    dir: &Path,
+    base: &str,
+    reserved: &mut HashSet<String>,
+) -> Result<PathBuf, String> {
     for counter in 0..10_000u32 {
         let candidate = if counter == 0 {
             dir.join(format!("{base}.png"))
@@ -915,7 +925,12 @@ impl LogParser {
             if *byte != b'\n' && *byte != b'\r' {
                 continue;
             }
-            push_segment(&self.carry[start..index], &self.percent, &mut progress, &mut lines);
+            push_segment(
+                &self.carry[start..index],
+                &self.percent,
+                &mut progress,
+                &mut lines,
+            );
             start = index + 1;
         }
 
@@ -997,7 +1012,10 @@ mod tests {
         let mut parser = LogParser::new();
         let (progress, lines) = parser.feed("[0 Apple M4] queueC=0[1] bugblz=106\n");
         assert_eq!(progress, None);
-        assert_eq!(lines, vec!["[0 Apple M4] queueC=0[1] bugblz=106".to_string()]);
+        assert_eq!(
+            lines,
+            vec!["[0 Apple M4] queueC=0[1] bugblz=106".to_string()]
+        );
     }
 
     #[test]
