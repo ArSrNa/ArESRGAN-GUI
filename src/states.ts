@@ -1,6 +1,7 @@
 import { atom } from "recoil";
+import type { ImageInput } from "./types";
 
-export const filesState = atom<File[] | null>({
+export const filesState = atom<ImageInput[]>({
   key: "files",
   default: [],
   dangerouslyAllowMutability: true,

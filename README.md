@@ -1,123 +1,101 @@
 # ArSrNaUI ESRGAN图像超分辨率软件
 
+桌面前端使用 Tauri 2、React、TypeScript 与 Vite，超分算法由内置的 `realesrgan-ncnn-vulkan` 二进制执行。
+
 ## 构建本软件
 
-平台：node v18.13.0 ；npm v8.19.3
+### 前置条件
 
-### clone源代码
+- Node.js 20 以上与 pnpm
+- Rust 稳定版工具链（rustup）
+- Windows：MSVC 生成工具与 WebView2 运行时；macOS：Xcode 命令行工具
+- 最低系统版本、签名与产物形态仍在评估，见 [迁移 Spec](docs/tauri-migration/spec.md)
+
+### 安装依赖
 
 ````shell
 git clone https://github.com/ArSrNa/ArESRGAN-GUI.git
-````
-
-安装依赖
-
-````shell
 cd ArESRGAN-GUI
-npm i
+pnpm install
 ````
 
-*中国大陆用户注意：由于dddd的原因，安装过程不一定顺利，因为electron某些依赖使用镜像会报错，所以建议不要换镜像下载，使用npm默认镜像即可*
-
-安装完成后即可启动
+### 开发与打包
 
 ````shell
-npm run start
+pnpm app:dev      # 准备内置资源 + 启动 Vite + Tauri 窗口
+pnpm app:build    # 安装包产物在 src-tauri/target/release/bundle/
 ````
+
+`pnpm app:dev` 会先执行 `scripts/prepare-tauri-assets.mjs`：把 `public/realsgan` 下的推理二进制按目标 triple 复制到 `src-tauri/binaries/`，并把模型与 DLL 复制到 `src-tauri/resources/`。这两个目录属于构建产物，已被 git 忽略。
+
+| 命令 | 说明 |
+| --- | --- |
+| `pnpm dev` | 只启动前端 Vite 开发服务器 |
+| `pnpm build` | 类型检查 + 前端构建到 `dist/` |
+| `pnpm assets` | 只准备 sidecar 与资源 |
+| `pnpm changelog` | 生成 CHANGELOG |
 
 ## 源代码内容
 
-| 目录      | 内容         |
-| --------- | ------------ |
-| ./src     | 主应用资源   |
-| ./backres | 依赖平台文件 |
-
-./src目录内容如下
-
-| 文件       | 内容       |
-| ---------- | ---------- |
-| js/        | 前端代码   |
-| res/       | 前端依赖   |
-| index.css  | 前端样式   |
-| index.html | 前端结构   |
-| index.js   | 后端主应用 |
+| 目录 | 内容 |
+| --- | --- |
+| `src/` | React 界面与页面 |
+| `src/lib/desktop.ts` | 前端唯一的 Tauri 调用层（invoke、事件订阅、预览地址） |
+| `src-tauri/src/` | Rust 桌面层：资源定位、批次队列、子进程与进度解析、更新检查 |
+| `src-tauri/binaries/` | sidecar 推理程序（构建时生成，不入库） |
+| `src-tauri/resources/` | 模型与 DLL（构建时生成，不入库） |
+| `public/realsgan/` | 推理二进制、模型与 DLL 的唯一真源 |
+| `scripts/prepare-tauri-assets.mjs` | 把 `public/realsgan` 准备成 Tauri 可打包的布局 |
 
 ## 实现方式与原理
 
 ### 前后端通讯
 
-前端通过ipc消息，ipcMain与ipcRender之间前后端实时交流
+前端不直接驱动推理进程，而是通过 Tauri 命令与事件和 Rust 桌面层交互。所有调用集中在 `src/lib/desktop.ts`。
 
-前端方式如下
+````ts
+import { invoke } from "@tauri-apps/api/core";
 
-````js
-import { ipcRenderer } from 'electron';
-ipcRenderer.send(channel,'我永远喜欢菲谢尔');
-
-ipcRenderer.on(channel,(evt,msg)=>{
-    // 接收后端信息
-    // msg 即为后端消息
-})
+// 提交批次：参数在提交时固定
+await invoke("start_batch", {
+  request: { inputs, model, output },
+});
 ````
 
-后端使用express与express-ws处理前端请求
-后端处理如下
+````ts
+import { listen } from "@tauri-apps/api/event";
 
-````js
-import { ipcMain } from 'electron';
-
-ipcMain.on(channel,(evt,msg)=>{
-    // msg为前端消息
-})
-
-mainWindow.webContents.send(channel,msg)
+// 批次状态推送：等待 / 执行中 / 成功 / 失败 / 已取消
+await listen("batch:update", (event) => {
+  console.log(event.payload);
+});
 ````
 
-### Child_Process
+### 任务调度与推理进程
 
-node中有这么一个模块，可以调用子进程，通过这个方式实现调用编译后的ESRGAN
+Rust 侧持有批次、队列与子进程。同一时间只允许一个推理进程，重复开始会被拒绝；停止会先记录请求，再终止子进程并取消后续任务。
 
-````js
-var spawn = require('child_process').spawn;
-
-esrgan = spawn(esrganPath,[
-    '-i',file,
-    '-o',`${file}_optimization.png`,
-    '-n',model
-  ]); 
+````rust
+let mut command = Command::new(&binary);
+command
+    .arg("-i").arg(&input)
+    .arg("-o").arg(&output)
+    .arg("-m").arg(&models_dir)
+    .arg("-n").arg(&model);
 ````
 
-简单地封装起来
+推理进度来自子进程输出中形如 `12.34%` 的整行文本。解析按流增量进行，兼容分段到达与 `\r` / `\n` 两种分隔符；stderr 中的其他内容是日志，既不算错误也不算进度。
 
-````js
-function optimization(data){
-  var file = data.file;
-  var model = data.model;
-  esrgan = spawn(esrganPath,[
-    '-i',file,
-    '-o',`${file}_optimization.png`,
-    '-n',model
-  ]); 
-  esrgan.stderr.on('data', function (data) {
-    console.log(data.toString('utf8'));
-    var progressSet = parseInt(data)/100
-    if(typeof progressSet=='number') mainWindow.setProgressBar(progressSet)
-    mainWindow.webContents.send('esrgan',{
-      type:'log',
-      data:data.toString('utf8')
-    });
-    }); 
-    esrgan.on('exit', function (code, signal) { 
-    mainWindow.setProgressBar(-1)
-    console.log('child process eixt ,exit:' + code); 
-    mainWindow.webContents.send('esrgan',{
-      type:'exit',
-      code:'exit'+code
-    });
-    return code
-    });
-  }
-````
+### 资源与打包
+
+- 推理二进制以 Tauri sidecar 形式打包，按目标 triple 命名，需先执行 `pnpm assets`。
+- 模型与 Windows DLL 作为附加资源打包，运行时通过 Tauri 路径接口定位，不依赖源码目录或工作目录。
+- 输出重名时自动改名为 `a_opt(1).png`，不覆盖已有文件。
+
+## 迁移文档
+
+- [Tauri 迁移 Intent](docs/tauri-migration/intent.md)
+- [Tauri 迁移 Spec](docs/tauri-migration/spec.md)
 
 # 问题反馈
 

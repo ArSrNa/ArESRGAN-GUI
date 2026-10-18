@@ -98,3 +98,8 @@ dist/
 
 dist-electron
 release/*
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+src-tauri/resources/
